@@ -7,6 +7,7 @@ export default function Header() {
         <div className="px-2 font-bold flex gap-2">
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
+          <Link to="/login">Login</Link>
         </div>
       </nav>
     </header>

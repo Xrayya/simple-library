@@ -11,8 +11,9 @@ import { relations } from "drizzle-orm";
 import "dotenv/config";
 
 const USER_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-user`;
+const BOOK_CATEGORY_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book-category`;
 const BOOK_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book`;
-const BORROW_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-borrow_log`;
+const BORROW_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-borrow-log`;
 
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -27,6 +28,7 @@ export const borrowStatusEnum = pgEnum("borrow_status", [
 
 export const users = pgTable(USER_TABLE_NAME, {
   id: uuid("id").primaryKey().defaultRandom(),
+  username: varchar("username", { length: 50 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: userRoleEnum("role").notNull().default("user"),
@@ -34,6 +36,13 @@ export const users = pgTable(USER_TABLE_NAME, {
 });
 
 export type UserType = typeof users.$inferSelect;
+
+export const categories = pgTable(BOOK_CATEGORY_LOG_TABLE_NAME, {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+});
+
+export type CategoryType = typeof categories.$inferSelect;
 
 export const books = pgTable(BOOK_TABLE_NAME, {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -43,6 +52,9 @@ export const books = pgTable(BOOK_TABLE_NAME, {
   year: integer("year"),
   edition: integer("edition"),
   description: text("description"),
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
   coverUrl: text("cover_url"),
   totalCopies: integer("total_copies").notNull().default(1),
   availableCopies: integer("available_copies").notNull().default(1),
@@ -75,8 +87,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   borrowLogs: many(borrowLogs),
 }));
 
-export const booksRelations = relations(books, ({ many }) => ({
+export const booksRelations = relations(books, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [books.categoryId],
+    references: [categories.id],
+  }),
   borrowLogs: many(borrowLogs),
+}));
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  books: many(books),
 }));
 
 export const borrowLogsRelations = relations(borrowLogs, ({ one }) => ({

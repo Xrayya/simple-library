@@ -2,10 +2,11 @@ import { eq, or } from "drizzle-orm";
 import { DrizzleQueryError } from "drizzle-orm/errors";
 import postgres from "postgres";
 import db from "../db/db";
-import { users } from "../db/schema";
+import { refreshTokens, users, UserType } from "../db/schema";
 import {
   EmailAlreadyExistsError,
   InvalidPasswordError,
+  InvalidTokenError,
   UnknownError,
   UserNotFoundError,
 } from "../exceptions";
@@ -62,7 +63,7 @@ export async function register(
 export async function login(
   usernameOrEmail: string,
   password: string,
-): Promise<{ user: { username: string; email: string }; token: string }> {
+): Promise<{ userId: string; username: string; email: string }> {
   const user = await db()
     .select()
     .from(users)
@@ -80,17 +81,87 @@ export async function login(
     throw new InvalidPasswordError();
   }
 
-  const token = await jwt.sign({
+  return {
+    userId: user[0].id,
     username: user[0].username,
     email: user[0].email,
-    password: user[0].passwordHash,
-  });
-
-  return {
-    user: {
-      username: user[0].username,
-      email: user[0].email,
-    },
-    token,
   };
+}
+
+export async function createToken(
+  user: Pick<UserType, "id" | "username" | "email">,
+): Promise<{ refreshToken: string; accessToken: string }> {
+  const { token: refreshToken } = (
+    await db()
+      .insert(refreshTokens)
+      .values({
+        userId: user.id,
+      })
+      .returning()
+  )[0];
+
+  const payload = {
+    userId: user.id,
+    username: user.username,
+    email: user.email,
+  };
+
+  const accessToken = await jwt.sign(payload);
+
+  return { refreshToken, accessToken };
+}
+
+export async function refreshAccessToken(
+  refreshToken: string,
+): Promise<string> {
+  const user = await db()
+    .select({
+      userId: users.id,
+      username: users.username,
+      email: users.email,
+    })
+    .from(refreshTokens)
+    .innerJoin(users, eq(refreshTokens.userId, users.id))
+    .where(eq(refreshTokens.token, refreshToken))
+    .limit(1);
+
+  if (user.length === 0) {
+    throw new InvalidTokenError();
+  }
+
+  const payload = {
+    userId: user[0].userId,
+    username: user[0].username,
+    email: user[0].email,
+  };
+
+  const accessToken = await jwt.sign(payload);
+
+  return accessToken;
+}
+
+export async function logout(
+  refreshToken: string,
+): Promise<{ username: string; email: string }> {
+  const result = await db()
+    .delete(refreshTokens)
+    .where(eq(refreshTokens.token, refreshToken))
+    .returning();
+
+  if (result.length === 0) {
+    throw new InvalidTokenError();
+  }
+
+  const user = (
+    await db()
+      .select({
+        username: users.username,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, result[0].userId))
+      .limit(1)
+  )[0];
+
+  return user;
 }

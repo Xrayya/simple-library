@@ -1,8 +1,15 @@
 import { Hono } from "hono";
 import { validateJsonRequest } from "../middlewares/validation";
 import { loginSchema, registerSchema } from "../validation-schemas/auth";
-import { login, register } from "../services/auth";
-import { setCookie } from "hono/cookie";
+import {
+  createToken,
+  login,
+  logout,
+  refreshAccessToken,
+  register,
+} from "../services/auth";
+import { getCookie, setCookie } from "hono/cookie";
+import { InvalidTokenError } from "../exceptions";
 
 export const authRoute = new Hono()
   .post("/register", ...validateJsonRequest(registerSchema), async (c) => {
@@ -15,19 +22,71 @@ export const authRoute = new Hono()
     const { usernameOrEmail, password } = c.req.valid("json");
     const validLogin = await login(usernameOrEmail, password);
 
-    setCookie(c, "token", validLogin.token, {
+    const { accessToken, refreshToken } = await createToken({
+      id: validLogin.userId,
+      ...validLogin,
+    });
+
+    setCookie(c, "accessToken", accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "Strict",
-      maxAge: 60 * 60 * 2,
-      path: "/",
+      maxAge: 60 * 60 * 2, // 2 hours
+      path: "/acessToken",
     });
 
-    return c.json({ validLogin }, 200);
+    setCookie(c, "refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/refreshToken",
+    });
+
+    return c.json({ validLogin, accessToken, refreshToken }, 200);
+  })
+  .post("/refresh", async (c) => {
+    const refreshToken = (getCookie(c, "refreshToken") ||
+      (await c.req.json()).refreshToken) as string;
+
+    if (!refreshToken) {
+      throw new InvalidTokenError();
+    }
+
+    const newAccessToken = await refreshAccessToken(refreshToken);
+
+    setCookie(c, "accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 2, // 2 hours
+    });
+
+    return c.json({ accessToken: newAccessToken }, 200);
+  })
+  .post("/logout", async (c) => {
+    const refreshToken = (getCookie(c, "refreshToken") ||
+      (await c.req.json()).refreshToken) as string;
+
+    if (!refreshToken) {
+      throw new InvalidTokenError();
+    }
+
+    const loggedOutUser = await logout(refreshToken);
+
+    setCookie(c, "accessToken", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 0,
+    });
+
+    setCookie(c, "refreshToken", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 0,
+    });
+
+    return c.json({ loggedOutUser }, 200);
   });
-// .get("/logout", verifyAuth, async (c) => {
-//   const token = c.req.header().authorization?.split(" ")[1];
-//   const isLoggedOut = await authService.logout(token);
-//
-//   return c.json({ isLoggedOut }, 200);
-// });

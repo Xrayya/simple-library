@@ -41,3 +41,9 @@ export class InvalidPasswordError extends BaseError {
     super("InvalidPasswordError", "The provided password is invalid.", 401);
   }
 }
+
+export class InvalidTokenError extends BaseError {
+  constructor() {
+    super("InvalidTokenError", "The provided token is invalid.", 401);
+  }
+}

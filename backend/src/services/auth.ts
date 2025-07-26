@@ -1,4 +1,4 @@
-import { PostgresError } from "postgres";
+import postgres from "postgres";
 import db from "../db/db";
 import { users } from "../db/schema";
 import { hasher } from "../utils";
@@ -27,10 +27,17 @@ export async function register(
       timestamp: result.createdAt,
     };
   } catch (error) {
-    if (error instanceof PostgresError) {
-      if (error.code === "23505" && error.constraint_name?.includes("email")) {
-        throw new EmailAlreadyExistsError(email);
+    if (error instanceof DrizzleQueryError) {
+      if (error.cause instanceof postgres.PostgresError) {
+        if (
+          error.cause.code === "23505" &&
+          error.cause.constraint_name?.includes("email")
+        ) {
+          throw new EmailAlreadyExistsError(email);
+        }
       }
+    } else {
+      throw new Error("An unexpected error occurred during registration.");
     }
   }
 }

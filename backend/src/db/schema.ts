@@ -1,13 +1,13 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  varchar,
-  integer,
-  timestamp,
-  pgEnum,
-} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import {
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 const USER_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-user`;
 const BOOK_CATEGORY_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book-category`;
@@ -88,8 +88,8 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: uuid("token").notNull().unique().defaultRandom(),
-  deviceId: uuid("device_id").defaultRandom(),
-  expiredAt: timestamp("expired_at"),
+  deviceId: text("device_id").notNull(),
+  expiredAt: timestamp("expired_at").notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

@@ -1,6 +1,8 @@
+import { PostgresError } from "postgres";
 import db from "../db/db";
 import { users } from "../db/schema";
 import { hasher } from "../utils";
+import { EmailAlreadyExistsError } from "../exceptions";
 
 export async function register(
   email: string,
@@ -25,7 +27,10 @@ export async function register(
       timestamp: result.createdAt,
     };
   } catch (error) {
-    // TODO: if error is unique constraint violation, throw a specific error
-    throw new Error("Failed to register user. Please try again.");
+    if (error instanceof PostgresError) {
+      if (error.code === "23505" && error.constraint_name?.includes("email")) {
+        throw new EmailAlreadyExistsError(email);
+      }
+    }
   }
 }

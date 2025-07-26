@@ -9,7 +9,7 @@ export async function register(
 ) {
   try {
     const result = (
-      await db
+      await db()
         .insert(users)
         .values({
           email,

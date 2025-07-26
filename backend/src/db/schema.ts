@@ -8,7 +8,6 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import "dotenv/config";
 
 const USER_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-user`;
 const BOOK_CATEGORY_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book-category`;

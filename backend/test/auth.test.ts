@@ -67,8 +67,9 @@ describe("Auth", () => {
 
     expect(response.status).toBe(200);
     expect(data.validLogin).toBeObject();
-    expect(data.validLogin.user.username).toBe("testuser");
-    expect(data.validLogin.user.email).toBe("testuser@example.com");
-    expect(data.validLogin.token).toBeString();
+    expect(data.validLogin.username).toBe("testuser");
+    expect(data.validLogin.email).toBe("testuser@example.com");
+    expect(data.validLogin.accessToken).toBeString();
+    expect(data.validLogin.refreshToken).toBeString();
   });
 });

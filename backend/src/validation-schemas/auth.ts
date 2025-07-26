@@ -22,3 +22,15 @@ export const registerSchema = new BaseRequestSchema({
   paramSchema: z.object({}),
   querySchema: z.object({}),
 });
+
+export const loginSchema = new BaseRequestSchema({
+  jsonSchema: z.object({
+    usernameOrEmail: z.string(),
+    password: z.string(),
+  }),
+  cookieSchema: z.object({}),
+  formSchema: z.object({}),
+  headerSchema: z.object({}),
+  paramSchema: z.object({}),
+  querySchema: z.object({}),
+});

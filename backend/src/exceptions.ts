@@ -1,11 +1,43 @@
 import { ContentfulStatusCode } from "hono/utils/http-status";
 
-export class EmailAlreadyExistsError extends Error {
+export class BaseError extends Error {
   statusCode: ContentfulStatusCode;
 
+  constructor(name: string, message: string, statusCode: ContentfulStatusCode) {
+    super(message);
+    this.name = name;
+    this.statusCode = statusCode;
+  }
+}
+
+export class UnknownError extends BaseError {
+  constructor(message: string) {
+    super("UnknownError", message, 500);
+  }
+}
+
+export class EmailAlreadyExistsError extends BaseError {
   constructor(email: string) {
-    super(`Email "${email}" is already registered.`);
-    this.name = "EmailAlreadyExistsError";
-    this.statusCode = 409;
+    super(
+      "EmailAlreadyExistsError",
+      `Email "${email}" is already registered.`,
+      409,
+    );
+  }
+}
+
+export class UserNotFoundError extends BaseError {
+  constructor(usernameOrEmail: string) {
+    super(
+      "UserNotFoundError",
+      `User with username or email "${usernameOrEmail}" not found.`,
+      404,
+    );
+  }
+}
+
+export class InvalidPasswordError extends BaseError {
+  constructor() {
+    super("InvalidPasswordError", "The provided password is invalid.", 401);
   }
 }

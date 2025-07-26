@@ -14,7 +14,7 @@ export async function register(
         .values({
           email,
           username,
-          passwordHash: await hasher.encrypt(password),
+          passwordHash: hasher.encrypt(password),
         })
         .returning()
     )[0];

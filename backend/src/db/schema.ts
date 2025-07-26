@@ -82,8 +82,19 @@ export const borrowLogs = pgTable(BORROW_LOG_TABLE_NAME, {
 
 export type BorrowLogType = typeof borrowLogs.$inferSelect;
 
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: uuid("token").notNull().unique().defaultRandom(),
+  deviceId: uuid("device_id").defaultRandom(),
+  expiredAt: timestamp("expired_at"),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   borrowLogs: many(borrowLogs),
+  refreshTokens: many(refreshTokens),
 }));
 
 export const booksRelations = relations(books, ({ one, many }) => ({

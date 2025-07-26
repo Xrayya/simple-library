@@ -44,6 +44,31 @@ describe("Auth", () => {
       }),
     });
 
-    expect(response.status).toBe(400);
+    const data: any = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(data.error).toBeObject();
+    expect(data.error.name).toBe("EmailAlreadyExistsError");
+  });
+
+  test("should return 200 on valid login", async () => {
+    const response = await fetch(`${baseUrl}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        usernameOrEmail: "testuser",
+        password: "Testpassword01",
+      }),
+    });
+
+    const data: any = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.validLogin).toBeObject();
+    expect(data.validLogin.user.username).toBe("testuser");
+    expect(data.validLogin.user.email).toBe("testuser@example.com");
+    expect(data.validLogin.token).toBeString();
   });
 });

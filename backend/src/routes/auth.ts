@@ -20,11 +20,11 @@ export const authRoute = new Hono()
   })
   .post("/login", ...validateJsonRequest(loginSchema), async (c) => {
     const { usernameOrEmail, password } = c.req.valid("json");
-    const validLogin = await login(usernameOrEmail, password);
+    const validUser = await login(usernameOrEmail, password);
 
     const { accessToken, refreshToken } = await createToken({
-      id: validLogin.userId,
-      ...validLogin,
+      id: validUser.userId,
+      ...validUser,
     });
 
     setCookie(c, "accessToken", accessToken, {
@@ -43,7 +43,17 @@ export const authRoute = new Hono()
       path: "/refreshToken",
     });
 
-    return c.json({ validLogin, accessToken, refreshToken }, 200);
+    return c.json(
+      {
+        validLogin: {
+          username: validUser.username,
+          email: validUser.email,
+          accessToken,
+          refreshToken,
+        },
+      },
+      200,
+    );
   })
   .post("/refresh", async (c) => {
     const refreshToken = (getCookie(c, "refreshToken") ||

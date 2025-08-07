@@ -7,16 +7,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
+
+import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
 
-export function LoginForm({
+export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const form = useForm({
     defaultValues: {
+      username: "",
       email: "",
       password: "",
     },
@@ -31,7 +33,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login with your Google account</CardDescription>
+          <CardDescription>Register with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -50,22 +52,35 @@ export function LoginForm({
                       fill="currentColor"
                     />
                   </svg>
-                  Login with Google
+                  Register with Google
                 </Button>
               </div>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
+                  Or regsiter with
                 </span>
               </div>
               <div className="grid gap-1">
+                <div className="grid">
+                  <form.Field
+                    name="username"
+                    children={(field) => (
+                      <FormField
+                        field={field}
+                        label="Username"
+                        placeholder="username"
+                      />
+                    )}
+                  />
+                </div>
                 <div className="grid">
                   <form.Field
                     name="email"
                     children={(field) => (
                       <FormField
                         field={field}
-                        label="Username or Email"
+                        label="Email"
+                        inputType="email"
                         placeholder="user@example.com"
                       />
                     )}
@@ -79,26 +94,18 @@ export function LoginForm({
                         field={field}
                         label="Password"
                         inputType="password"
-                        extraLabel={
-                          <a
-                            href="#"
-                            className="ml-auto text-sm underline-offset-4 hover:underline"
-                          >
-                            Forgot your password?
-                          </a>
-                        }
                       />
                     )}
                   />
                 </div>
                 <Button type="submit" className="w-full font-semibold">
-                  Login
+                  Register
                 </Button>
               </div>
               <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link to="/register" className="underline underline-offset-4">
-                  Register
+                Already have an account?{" "}
+                <Link to="/login" className="underline underline-offset-4">
+                  Login
                 </Link>
               </div>
             </div>

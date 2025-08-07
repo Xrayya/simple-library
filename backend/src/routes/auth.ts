@@ -19,13 +19,18 @@ export const authRoute = new Hono()
     return c.json({ account: newUser }, 201);
   })
   .post("/login", ...validateJsonRequest(loginSchema), async (c) => {
-    const { usernameOrEmail, password } = c.req.valid("json");
+    const { usernameOrEmail, password, deviceId } = c.req.valid("json");
     const validUser = await login(usernameOrEmail, password);
 
-    const { accessToken, refreshToken } = await createToken({
-      id: validUser.userId,
-      ...validUser,
-    });
+    // TODO: continue testing
+    const { accessToken, refreshToken } = await createToken(
+      {
+        id: validUser.userId,
+        ...validUser,
+      },
+      deviceId,
+      60 * 60 * 24 * 30, // 30 days for refresh token
+    );
 
     setCookie(c, "accessToken", accessToken, {
       httpOnly: true,

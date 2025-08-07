@@ -3,12 +3,12 @@ import { DrizzleQueryError } from "drizzle-orm/errors";
 import postgres from "postgres";
 import db from "../db/db";
 import { refreshTokens, users, UserType } from "../db/schema";
+import { hasher, jwt } from "../utils";
 import { UnknownError } from "../exceptions/base";
 import {
   EmailAlreadyExistsError,
   InvalidCredentialsError,
   InvalidTokenError,
-import { hasher, jwt } from "../utils";
 } from "../exceptions/auth";
 
 export async function register(
@@ -89,12 +89,16 @@ export async function login(
 
 export async function createToken(
   user: Pick<UserType, "id" | "username" | "email">,
+  deviceId: string,
+  expiresIn: number,
 ): Promise<{ refreshToken: string; accessToken: string }> {
   const { token: refreshToken } = (
     await db()
       .insert(refreshTokens)
       .values({
         userId: user.id,
+        deviceId,
+        expiredAt: new Date(Date.now() + expiresIn * 1000),
       })
       .returning()
   )[0];

@@ -12,13 +12,21 @@ import { Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
 
+import { useApiMutation } from "@/hooks/useApi";
 import { registerSchema } from "@backend/validation-schemas/auth";
 import { LoaderCircle } from "lucide-react";
+
+import z from "zod";
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const register = useApiMutation<
+    z.infer<typeof registerSchema.json>,
+    { message: string }
+  >("/auth/register", "POST");
+
   const form = useForm({
     defaultValues: {
       username: "",
@@ -28,9 +36,14 @@ export function RegisterForm({
     validators: {
       onChange: registerSchema.json,
     },
-    onSubmit: (values) => {
-      console.log("Form submitted with values:", values);
-      // Handle form submission logic here
+    onSubmit: async (values) => {
+      await register.mutateAsync(values.value);
+
+      if (!register.isSuccess) {
+        console.error("Registration failed:", register.error?.message);
+      } else {
+        console.log("Registration successful:", register.data);
+      }
     },
   });
 

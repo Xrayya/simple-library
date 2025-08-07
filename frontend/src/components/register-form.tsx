@@ -27,7 +27,13 @@ export function RegisterForm({
 
   const register = useApiMutation<
     z.infer<typeof registerSchema.json>,
-    { message: string }
+    {
+      account: {
+        email: string;
+        username: string;
+        timestamp: string;
+      };
+    }
   >("/auth/register", "POST");
 
   const defaultRegisterValues: z.infer<typeof registerSchema.json> = {
@@ -43,11 +49,20 @@ export function RegisterForm({
     },
     onSubmit: async (values) => {
       try {
-        await register.mutateAsync(values.value);
+        const { account } = await register.mutateAsync(values.value);
+
         toast("Registration successful", {
+          description: (
+            <div className="flex flex-col">
+              <div>Username: {account.username}</div>
+              <div>Email: {account.email}</div>
+              <div>Timestamp: {new Date(account.timestamp).toString()}</div>
+            </div>
+          ),
           closeButton: true,
           icon: <CircleCheck />,
         });
+
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
         navigation({ to: "/login" });

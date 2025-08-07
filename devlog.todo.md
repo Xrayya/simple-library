@@ -37,5 +37,7 @@
 
 - [x] implement register with email and password on frontend
 - [ ] implement login with email and password on frontend
+  - [ ] butuh cari tahu cara kirim cookie dari frontend ke backend -> potentially buat endpoint di utils hanya untuk membaca cookie
+  - [ ] butuh cari tahu cara untuk clean up cookie di frontend
 - [ ] implement refresh token on frontend
 - [ ] implement logout on frontend

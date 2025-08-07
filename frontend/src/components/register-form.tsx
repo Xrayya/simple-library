@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
@@ -23,6 +23,8 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const navigation = useNavigate();
+
   const register = useApiMutation<
     z.infer<typeof registerSchema.json>,
     { message: string }
@@ -44,6 +46,9 @@ export function RegisterForm({
           closeButton: true,
           icon: <CircleCheck />,
         });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        navigation({ to: "/login" });
       } catch (error: any) {
         console.error("Registration error:", error);
         toast("Registration failed", {

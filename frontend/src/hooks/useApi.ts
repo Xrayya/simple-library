@@ -14,8 +14,11 @@ async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error || "API error");
+    const payload: any = await response.json().catch(() => ({}));
+    console.error("Error fetching data:", payload);
+    throw new Error(
+      payload?.error?.message || "An error occurred while fetching data",
+    );
   }
 
   return response.json();

@@ -1,8 +1,41 @@
 # Dev Log
 
-## 2025-25-25
+## 2025-7-25
 
-- [ ] Initialize project from template
-- [ ] try deploy frontend to Vercel
-- [ ] try deploy backend to Cloudflare Workers
-- [ ] First feature: login with email-password and google
+- [x] Initialize project from template
+- [x] try deploy frontend to Vercel
+- [x] try deploy backend to Cloudflare Workers
+- [x] Setup backend repo
+  - [x] setup supabase
+  - [x] install drizzle
+  - [x] setup drizzle with supabase
+  - [x] setup db shcema (use schema fron database)
+  - [x] setup validation middleware
+- [x] First feature: register with email-password
+
+## 2025-7-26
+
+- [x] login with email and password; with cookie and header token setting and refresh token
+  - [x] push db
+  - [x] pas login kirim akses dan refresh token di payload dan juga set cookie
+  - [x] auth middleware nangkep token dari cookie dan header sekaligus
+- [x] endpoint refresh token
+- [x] logout
+- [x] test auth
+  - [x] test login
+  - [x] try to change access token expire time to 1m and see if it effect -> check // TODO
+  - [x] test refresh token
+  - [x] test logout
+- [ ] bangun frontend auth
+  - [x] login page
+  - [ ] logout button
+  - [x] try to change cookie and access token expire time to 1m and see if it effect
+- [ ] setup trigger untuk updatedat
+- [ ] {homework} cari tahu hapus token otomatis yang dah kadaluarsa
+
+## 2025-8-7
+
+- [x] implement register with email and password on frontend
+- [ ] implement login with email and password on frontend
+- [ ] implement refresh token on frontend
+- [ ] implement logout on frontend

@@ -12,6 +12,8 @@ import { Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
 
+import { registerSchema } from "@backend/validation-schemas/auth";
+
 export function RegisterForm({
   className,
   ...props
@@ -21,6 +23,9 @@ export function RegisterForm({
       username: "",
       email: "",
       password: "",
+    },
+    validators: {
+      onChange: registerSchema.json,
     },
     onSubmit: (values) => {
       console.log("Form submitted with values:", values);

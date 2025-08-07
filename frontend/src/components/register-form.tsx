@@ -30,12 +30,14 @@ export function RegisterForm({
     { message: string }
   >("/auth/register", "POST");
 
+  const defaultRegisterValues: z.infer<typeof registerSchema.json> = {
+    username: "",
+    email: "",
+    password: "",
+  };
+
   const form = useForm({
-    defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-    },
+    defaultValues: defaultRegisterValues,
     validators: {
       onChange: registerSchema.json,
     },

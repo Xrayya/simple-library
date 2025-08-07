@@ -2,6 +2,10 @@ import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload, jwtVerify } from "jose";
 import { SECRET } from "../utils";
+import {
+  AuthenticationRequiredError,
+  InvalidTokenError,
+} from "../exceptions/auth";
 
 export const authMiddleware = createMiddleware<{
   Variables: {
@@ -16,11 +20,12 @@ export const authMiddleware = createMiddleware<{
     getCookie(c, "accessToken") || c.req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
-    return c.json({ error: "Unauthorized: Token missing" }, 401);
+    throw new AuthenticationRequiredError();
   }
 
   try {
     const { payload } = await jwtVerify(token, SECRET);
+
     c.set(
       "user",
       payload as JWTPayload & {
@@ -31,6 +36,6 @@ export const authMiddleware = createMiddleware<{
     );
     await next();
   } catch (err) {
-    return c.json({ error: "Unauthorized: Invalid token" }, 401);
+    throw new InvalidTokenError();
   }
 });

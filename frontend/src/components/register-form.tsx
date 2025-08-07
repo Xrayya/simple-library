@@ -13,6 +13,7 @@ import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
 
 import { registerSchema } from "@backend/validation-schemas/auth";
+import { LoaderCircle } from "lucide-react";
 
 export function RegisterForm({
   className,
@@ -103,9 +104,21 @@ export function RegisterForm({
                     )}
                   />
                 </div>
-                <Button type="submit" className="w-full font-semibold">
-                  Register
-                </Button>
+                <form.Subscribe
+                  selector={(state) => [state.canSubmit, state.isSubmitting]}
+                  children={([canSubmit, isSubmitting]) => (
+                    <Button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className="w-full font-semibold flex gap-1 items-center"
+                    >
+                      {isSubmitting ? (
+                        <LoaderCircle className="animate-spin" />
+                      ) : null}
+                      Register
+                    </Button>
+                  )}
+                />
               </div>
               <div className="text-center text-sm">
                 Already have an account?{" "}

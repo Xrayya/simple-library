@@ -27,6 +27,7 @@ export const loginSchema = new BaseRequestSchema({
   jsonSchema: z.object({
     usernameOrEmail: z.string(),
     password: z.string(),
+    deviceId: z.string(),
   }),
   cookieSchema: z.object({}),
   formSchema: z.object({}),

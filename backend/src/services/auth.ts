@@ -3,14 +3,15 @@ import { DrizzleQueryError } from "drizzle-orm/errors";
 import postgres from "postgres";
 import db from "../db/db";
 import { refreshTokens, users, UserType } from "../db/schema";
+import { UnknownError } from "../exceptions/base";
 import {
   EmailAlreadyExistsError,
   InvalidPasswordError,
   InvalidTokenError,
   UnknownError,
   UserNotFoundError,
-} from "../exceptions";
 import { hasher, jwt } from "../utils";
+} from "../exceptions/auth";
 
 export async function register(
   email: string,

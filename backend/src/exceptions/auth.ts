@@ -1,20 +1,4 @@
-import { ContentfulStatusCode } from "hono/utils/http-status";
-
-export class BaseError extends Error {
-  statusCode: ContentfulStatusCode;
-
-  constructor(name: string, message: string, statusCode: ContentfulStatusCode) {
-    super(message);
-    this.name = name;
-    this.statusCode = statusCode;
-  }
-}
-
-export class UnknownError extends BaseError {
-  constructor(message: string) {
-    super("UnknownError", message, 500);
-  }
-}
+import { BaseError } from "./base";
 
 export class EmailAlreadyExistsError extends BaseError {
   constructor(email: string) {
@@ -36,9 +20,9 @@ export class UserNotFoundError extends BaseError {
   }
 }
 
-export class InvalidPasswordError extends BaseError {
+export class InvalidCredentialsError extends BaseError {
   constructor() {
-    super("InvalidPasswordError", "The provided password is invalid.", 401);
+    super("InvalidCredentialsError", "The provided credentials is invalid.", 401);
   }
 }
 
@@ -47,3 +31,14 @@ export class InvalidTokenError extends BaseError {
     super("InvalidTokenError", "The provided token is invalid.", 401);
   }
 }
+
+export class AuthenticationRequiredError extends BaseError {
+  constructor() {
+    super(
+      "AuthenticationRequiredError",
+      "Authentication credentials were not provided.",
+      401
+    );
+  }
+}
+

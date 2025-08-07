@@ -9,7 +9,7 @@ import {
   register,
 } from "../services/auth";
 import { getCookie, setCookie } from "hono/cookie";
-import { InvalidTokenError } from "../exceptions";
+import { InvalidTokenError } from "../exceptions/auth";
 
 export const authRoute = new Hono()
   .post("/register", ...validateJsonRequest(registerSchema), async (c) => {

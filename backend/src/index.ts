@@ -1,10 +1,8 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
-import {
-  BaseError
-} from "./exceptions";
 import { authRoute } from "./routes/auth";
+import { BaseError } from "./exceptions/base";
 
 const backend = new Hono().basePath("/api/v1");
 

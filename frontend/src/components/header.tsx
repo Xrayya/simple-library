@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from "@tanstack/react-router";
+import { ThemeToggle } from "./theme-toggle";
 
 export default function Header() {
   return (
@@ -11,6 +12,7 @@ export default function Header() {
           <Link to="/register">Register</Link>
         </div>
       </nav>
+      <ThemeToggle />
     </header>
-  )
+  );
 }

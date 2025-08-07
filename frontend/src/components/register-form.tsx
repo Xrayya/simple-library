@@ -14,9 +14,10 @@ import { FormField } from "./form-field";
 
 import { useApiMutation } from "@/hooks/useApi";
 import { registerSchema } from "@backend/validation-schemas/auth";
-import { LoaderCircle } from "lucide-react";
+import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 
 import z from "zod";
+import { toast } from "sonner";
 
 export function RegisterForm({
   className,
@@ -37,12 +38,22 @@ export function RegisterForm({
       onChange: registerSchema.json,
     },
     onSubmit: async (values) => {
-      await register.mutateAsync(values.value);
-
-      if (!register.isSuccess) {
-        console.error("Registration failed:", register.error?.message);
-      } else {
-        console.log("Registration successful:", register.data);
+      try {
+        await register.mutateAsync(values.value);
+        toast("Registration successful", {
+          closeButton: true,
+          icon: <CircleCheck />,
+        });
+      } catch (error: any) {
+        console.error("Registration error:", error);
+        toast("Registration failed", {
+          description: error?.message || "An error occurred",
+          className: "!text-destructive",
+          descriptionClassName: "!text-destructive",
+          closeButton: true,
+          icon: <CircleX />,
+          duration: 7000,
+        });
       }
     },
   });

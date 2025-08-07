@@ -4,7 +4,7 @@ export class EmailAlreadyExistsError extends BaseError {
   constructor(email: string) {
     super(
       "EmailAlreadyExistsError",
-      `Email "${email}" is already registered.`,
+      `Email '${email}' is already registered.`,
       409,
     );
   }
@@ -14,7 +14,7 @@ export class UserNotFoundError extends BaseError {
   constructor(usernameOrEmail: string) {
     super(
       "UserNotFoundError",
-      `User with username or email "${usernameOrEmail}" not found.`,
+      `User with username or email '${usernameOrEmail}' not found.`,
       404,
     );
   }

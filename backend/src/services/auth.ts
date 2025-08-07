@@ -6,10 +6,8 @@ import { refreshTokens, users, UserType } from "../db/schema";
 import { UnknownError } from "../exceptions/base";
 import {
   EmailAlreadyExistsError,
-  InvalidPasswordError,
+  InvalidCredentialsError,
   InvalidTokenError,
-  UnknownError,
-  UserNotFoundError,
 import { hasher, jwt } from "../utils";
 } from "../exceptions/auth";
 
@@ -74,12 +72,12 @@ export async function login(
     .limit(1);
 
   if (user.length === 0) {
-    throw new UserNotFoundError(usernameOrEmail);
+    throw new InvalidCredentialsError();
   }
 
   const isPasswordValid = hasher.verify(user[0].passwordHash, password);
   if (!isPasswordValid) {
-    throw new InvalidPasswordError();
+    throw new InvalidCredentialsError();
   }
 
   return {

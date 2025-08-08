@@ -27,26 +27,30 @@ async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
 export function useApiQuery<T = unknown>(
   queryKey: string[],
   url: string,
-  options?: UseQueryOptions<T>,
+  options?: { query?: UseQueryOptions<T>; fetcher?: RequestInit },
 ) {
   return useQuery<T>({
     queryKey,
-    queryFn: () => fetcher<T>(url),
-    ...options,
+    queryFn: () => fetcher<T>(url, options?.fetcher),
+    ...options?.query,
   });
 }
 
 export function useApiMutation<TInput = unknown, TOutput = unknown>(
   url: string,
   method: "POST" | "PUT" | "DELETE" = "POST",
-  options?: UseMutationOptions<TOutput, Error, TInput>,
+  options?: {
+    mutation?: UseMutationOptions<TOutput, Error, TInput>;
+    fetcher?: RequestInit;
+  },
 ) {
   return useMutation<TOutput, Error, TInput>({
     mutationFn: (data: TInput) =>
       fetcher<TOutput>(url, {
         method,
         body: JSON.stringify(data),
+        ...options?.fetcher,
       }),
-    ...options,
+    ...options?.mutation,
   });
 }

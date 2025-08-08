@@ -22,7 +22,6 @@ export const authRoute = new Hono()
     const { usernameOrEmail, password, deviceId } = c.req.valid("json");
     const validUser = await login(usernameOrEmail, password);
 
-    // TODO: continue testing
     const { accessToken, refreshToken } = await createToken(
       {
         id: validUser.userId,
@@ -34,18 +33,18 @@ export const authRoute = new Hono()
 
     setCookie(c, "accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      // secure: true,
+      sameSite: "Lax",
       maxAge: 60 * 60 * 2, // 2 hours
-      path: "/acessToken",
+      path: "/",
     });
 
     setCookie(c, "refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      // secure: true,
+      sameSite: "Lax",
       maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: "/refreshToken",
+      path: "/",
     });
 
     return c.json(
@@ -72,9 +71,10 @@ export const authRoute = new Hono()
 
     setCookie(c, "accessToken", newAccessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      // secure: true,
+      sameSite: "Lax",
       maxAge: 60 * 60 * 2, // 2 hours
+      path: "/",
     });
 
     return c.json({ accessToken: newAccessToken }, 200);
@@ -91,16 +91,18 @@ export const authRoute = new Hono()
 
     setCookie(c, "accessToken", "", {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      // secure: true,
+      sameSite: "Lax",
       maxAge: 0,
+      path: "/",
     });
 
     setCookie(c, "refreshToken", "", {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      // secure: true,
+      sameSite: "Lax",
       maxAge: 0,
+      path: "/",
     });
 
     return c.json({ loggedOutUser }, 200);

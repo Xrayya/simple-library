@@ -83,6 +83,11 @@ export function LoginForm({
                           <a
                             href="#"
                             className="ml-auto text-sm underline-offset-4 hover:underline"
+                            onClick={() => {
+                              toast(
+                                "Forgot password functionality is not implemented yet.",
+                              );
+                            }}
                           >
                             Forgot your password?
                           </a>

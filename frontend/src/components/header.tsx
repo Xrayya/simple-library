@@ -10,6 +10,7 @@ export default function Header() {
           <Link to="/about">About</Link>
           <Link to="/login">Login</Link>
           <Link to="/register">Register</Link>
+          <Link to="/check-cookie">Check Cookie</Link>
         </div>
       </nav>
       <ThemeToggle />

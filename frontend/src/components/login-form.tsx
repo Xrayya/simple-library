@@ -11,18 +11,72 @@ import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
 import { FormField } from "./form-field";
 
+import { loginSchema } from "@backend/validation-schemas/auth";
+
+import { useApiMutation } from "@/hooks/useApi";
+import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import z from "zod";
+
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const login = useApiMutation<
+    z.infer<typeof loginSchema.json>,
+    {
+      validLogin: {
+        username: string;
+        email: string;
+        accessToken: string;
+        refreshToken: string;
+      };
+    }
+  >("/auth/login", "POST", { fetcher: { credentials: "include" } });
+
+  const defaultLoginValues: z.infer<typeof loginSchema.json> = {
+    usernameOrEmail: "",
+    password: "",
+    deviceId: "web-client",
+  };
+
   const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
+    defaultValues: defaultLoginValues,
+    validators: {
+      onChange: loginSchema.json,
     },
-    onSubmit: (values) => {
-      console.log("Form submitted with values:", values);
-      // Handle form submission logic here
+    onSubmit: async (values) => {
+      try {
+        const { validLogin } = await login.mutateAsync({
+          ...values.value,
+          deviceId: "web-client",
+        });
+
+        console.log("Login successful:", validLogin);
+
+        toast("Login successful", {
+          description: (
+            <div className="flex flex-col">
+              <div>Username: {validLogin.username}</div>
+              <div>Email: {validLogin.email}</div>
+            </div>
+          ),
+          closeButton: true,
+          icon: <CircleCheck />,
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } catch (error: any) {
+        console.error("Registration error:", error);
+        toast("Registration failed", {
+          description: error?.message || "An error occurred",
+          className: "!text-destructive",
+          descriptionClassName: "!text-destructive",
+          closeButton: true,
+          icon: <CircleX />,
+          duration: 7000,
+        });
+      }
     },
   });
 
@@ -61,7 +115,7 @@ export function LoginForm({
               <div className="grid gap-1">
                 <div className="grid">
                   <form.Field
-                    name="email"
+                    name="usernameOrEmail"
                     children={(field) => (
                       <FormField
                         field={field}
@@ -96,9 +150,21 @@ export function LoginForm({
                     )}
                   />
                 </div>
-                <Button type="submit" className="w-full font-semibold">
-                  Login
-                </Button>
+                <form.Subscribe
+                  selector={(state) => [state.canSubmit, state.isSubmitting]}
+                  children={([canSubmit, isSubmitting]) => (
+                    <Button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className="w-full font-semibold flex gap-1 items-center"
+                    >
+                      {isSubmitting ? (
+                        <LoaderCircle className="animate-spin" />
+                      ) : null}
+                      Login
+                    </Button>
+                  )}
+                />
               </div>
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}

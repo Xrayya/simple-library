@@ -9,7 +9,13 @@ import { utilsRoute } from "./routes/utils";
 
 const backend = new Hono().basePath("/api/v1");
 
-backend.use(cors());
+backend.use(
+  "*",
+  cors({
+    origin: ["http://localhost:3000"],
+    credentials: true,
+  }),
+);
 backend.use(logger());
 
 backend.get("/", (c) => {

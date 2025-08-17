@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ThemeToggle } from "./theme-toggle";
+import { LogoutButton } from "./logout-button";
 
 export default function Header() {
   return (
@@ -11,6 +12,7 @@ export default function Header() {
           <Link to="/login">Login</Link>
           <Link to="/register">Register</Link>
           <Link to="/check-cookie">Check Cookie</Link>
+          <LogoutButton />
         </div>
       </nav>
       <ThemeToggle />

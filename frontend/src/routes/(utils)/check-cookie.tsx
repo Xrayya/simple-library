@@ -11,7 +11,7 @@ export const Route = createFileRoute("/(utils)/check-cookie")({
 
 function RouteComponent() {
   const checkCookies = useApiMutation<
-    {},
+    void,
     {
       accessToken: string;
       refreshToken: string;
@@ -21,7 +21,7 @@ function RouteComponent() {
   });
 
   useEffect(() => {
-    checkCookies.mutate({});
+    checkCookies.mutate();
   }, []);
 
   if (checkCookies.isSuccess) {

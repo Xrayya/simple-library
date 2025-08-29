@@ -10,8 +10,13 @@ import {
 } from "../services/auth";
 import { getCookie, setCookie } from "hono/cookie";
 import { InvalidTokenError } from "../exceptions/auth";
+import { detectBrowserClient } from "../utils";
 
-export const authRoute = new Hono()
+export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
+  .use(async (c, next) => {
+    c.set("isBrowserClient", detectBrowserClient(c));
+    await next();
+  })
   .post("/register", ...validateJsonRequest(registerSchema), async (c) => {
     const { username, email, password } = c.req.valid("json");
     const newUser = await register(email, username, password);
@@ -31,37 +36,42 @@ export const authRoute = new Hono()
       60 * 60 * 24 * 30, // 30 days for refresh token
     );
 
-    setCookie(c, "accessToken", accessToken, {
-      httpOnly: true,
-      // secure: true,
-      sameSite: "Lax",
-      maxAge: 60 * 60 * 2, // 2 hours
-      path: "/",
-    });
+    if (c.get("isBrowserClient")) {
+      setCookie(c, "accessToken", accessToken, {
+        httpOnly: true,
+        // secure: true,
+        sameSite: "Lax",
+        maxAge: 60 * 60 * 2, // 2 hours
+        path: "/",
+      });
 
-    setCookie(c, "refreshToken", refreshToken, {
-      httpOnly: true,
-      // secure: true,
-      sameSite: "Lax",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: "/",
-    });
+      setCookie(c, "refreshToken", refreshToken, {
+        httpOnly: true,
+        // secure: true,
+        sameSite: "Lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+    }
 
     return c.json(
       {
         validLogin: {
           username: validUser.username,
           email: validUser.email,
-          accessToken,
-          refreshToken,
+          accessToken: c.get("isBrowserClient") ? undefined : accessToken,
+          refreshToken: c.get("isBrowserClient") ? undefined : refreshToken,
         },
       },
       200,
     );
   })
   .post("/refresh", async (c) => {
-    const refreshToken = (getCookie(c, "refreshToken") ||
-      (await c.req.json()).refreshToken) as string;
+    const refreshToken = (
+      c.get("isBrowserClient")
+        ? getCookie(c, "refreshToken")
+        : (await c.req.json()).refreshToken
+    ) as string;
 
     if (!refreshToken) {
       throw new InvalidTokenError();
@@ -69,41 +79,54 @@ export const authRoute = new Hono()
 
     const newAccessToken = await refreshAccessToken(refreshToken);
 
-    setCookie(c, "accessToken", newAccessToken, {
-      httpOnly: true,
-      // secure: true,
-      sameSite: "Lax",
-      maxAge: 60 * 60 * 2, // 2 hours
-      path: "/",
-    });
+    if (c.get("isBrowserClient")) {
+      setCookie(c, "accessToken", newAccessToken, {
+        httpOnly: true,
+        // secure: true,
+        sameSite: "Lax",
+        maxAge: 60 * 60 * 2, // 2 hours
+        path: "/",
+      });
+    }
 
-    return c.json({ accessToken: newAccessToken }, 200);
+    if (!c.get("isBrowserClient")) {
+      return c.json({ accessToken: newAccessToken }, 200);
+    }
+
+    c.status(204);
+    return c.body(null);
   })
   .post("/logout", async (c) => {
-    const refreshToken = (getCookie(c, "refreshToken") ||
-      (await c.req.json()).refreshToken) as string;
+    const refreshToken = (
+      c.get("isBrowserClient")
+        ? getCookie(c, "refreshToken")
+        : (await c.req.json()).refreshToken
+    ) as string;
 
     if (!refreshToken) {
       throw new InvalidTokenError();
     }
 
-    const loggedOutUser = await logout(refreshToken);
+    await logout(refreshToken);
 
-    setCookie(c, "accessToken", "", {
-      httpOnly: true,
-      // secure: true,
-      sameSite: "Lax",
-      maxAge: 0,
-      path: "/",
-    });
+    if (c.get("isBrowserClient")) {
+      setCookie(c, "accessToken", "", {
+        httpOnly: true,
+        // secure: true,
+        sameSite: "Lax",
+        maxAge: 0,
+        path: "/",
+      });
 
-    setCookie(c, "refreshToken", "", {
-      httpOnly: true,
-      // secure: true,
-      sameSite: "Lax",
-      maxAge: 0,
-      path: "/",
-    });
+      setCookie(c, "refreshToken", "", {
+        httpOnly: true,
+        // secure: true,
+        sameSite: "Lax",
+        maxAge: 0,
+        path: "/",
+      });
+    }
 
-    return c.json({ loggedOutUser }, 200);
+    c.status(204);
+    return c.body(null);
   });

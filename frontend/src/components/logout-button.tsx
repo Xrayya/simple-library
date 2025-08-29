@@ -17,23 +17,18 @@ export function LogoutButton({
 }) {
   const navigation = useNavigate();
 
-  const logout = useApiMutation<
-    void,
-    {
-      username: string;
-      email: string;
-    }
-  >("/auth/logout", "POST", {
-    fetcher: { credentials: "include" },
-  });
+  const logout = useApiMutation<void, any>(
+    "/auth/logout",
+    "POST",
+    undefined,
+    true,
+  );
 
   const form = useForm({
     defaultValues: {},
     onSubmit: async () => {
       try {
-        const info = await logout.mutateAsync();
-
-        console.log("Logout successful:", info);
+        await logout.mutateAsync();
 
         toast("Logout successful", {
           closeButton: true,

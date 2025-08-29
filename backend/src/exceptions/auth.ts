@@ -20,9 +20,9 @@ export class UserNotFoundError extends BaseError {
   }
 }
 
-export class InvalidCredentialsError extends BaseError {
+export class CredentialNotFoundError extends BaseError {
   constructor() {
-    super("InvalidCredentialsError", "The provided credentials is invalid.", 401);
+    super("CredentialNotFoundError", "Account with provided credentials is not found.", 404);
   }
 }
 

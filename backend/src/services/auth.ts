@@ -7,7 +7,7 @@ import { hasher, jwt } from "../utils";
 import { UnknownError } from "../exceptions/base";
 import {
   EmailAlreadyExistsError,
-  InvalidCredentialsError,
+  CredentialNotFoundError,
   InvalidTokenError,
 } from "../exceptions/auth";
 
@@ -72,12 +72,12 @@ export async function login(
     .limit(1);
 
   if (user.length === 0) {
-    throw new InvalidCredentialsError();
+    throw new CredentialNotFoundError();
   }
 
   const isPasswordValid = hasher.verify(user[0].passwordHash, password);
   if (!isPasswordValid) {
-    throw new InvalidCredentialsError();
+    throw new CredentialNotFoundError();
   }
 
   return {
@@ -145,7 +145,7 @@ export async function refreshAccessToken(
 
 export async function logout(
   refreshToken: string,
-): Promise<{ username: string; email: string }> {
+): Promise<void> {
   const result = await db()
     .delete(refreshTokens)
     .where(eq(refreshTokens.token, refreshToken))
@@ -154,17 +154,4 @@ export async function logout(
   if (result.length === 0) {
     throw new InvalidTokenError();
   }
-
-  const user = (
-    await db()
-      .select({
-        username: users.username,
-        email: users.email,
-      })
-      .from(users)
-      .where(eq(users.id, result[0].userId))
-      .limit(1)
-  )[0];
-
-  return user;
 }

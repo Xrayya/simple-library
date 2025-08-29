@@ -1,7 +1,7 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload, jwtVerify } from "jose";
-import { SECRET } from "../utils";
+import { detectBrowserClient, SECRET } from "../utils";
 import {
   AuthenticationRequiredError,
   InvalidTokenError,
@@ -16,8 +16,9 @@ export const authMiddleware = createMiddleware<{
     };
   };
 }>(async (c, next) => {
-  const token =
-    getCookie(c, "accessToken") || c.req.header("Authorization")?.split(" ")[1];
+  const token = detectBrowserClient(c)
+    ? getCookie(c, "accessToken")
+    : c.req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
     throw new AuthenticationRequiredError();

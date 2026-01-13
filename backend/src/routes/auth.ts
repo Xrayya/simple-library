@@ -130,4 +130,17 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
 
     c.status(204);
     return c.body(null);
+  })
+  .get("/me", async (c) => {
+    const accessToken = c.get("isBrowserClient")
+      ? getCookie(c, "accessToken")
+      : c.req.header("Authorization")?.split(" ")[1];
+
+    if (!accessToken) {
+      throw new InvalidTokenError();
+    }
+
+    const authInfo = getAuthInfo(accessToken);
+
+    return c.json({ authInfo }, 200);
   });

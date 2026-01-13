@@ -157,3 +157,34 @@ export async function logout(
     throw new InvalidTokenError();
   }
 }
+
+export async function getAuthInfo(
+  accessToken: string,
+): Promise<{ username: string; email: string; role: string }> {
+  const { userId } = (await jwt.verify(accessToken)) as JWTPayload & {
+    userId: string;
+    username: string;
+    email: string;
+    role: string;
+  };
+
+  const user = await db()
+    .select({
+      username: users.username,
+      email: users.email,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (user.length === 0) {
+    throw new InvalidTokenError();
+  }
+
+  return {
+    username: user[0].username,
+    email: user[0].email,
+    role: user[0].role,
+  };
+}

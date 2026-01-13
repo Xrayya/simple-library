@@ -22,7 +22,11 @@ export class UserNotFoundError extends BaseError {
 
 export class CredentialNotFoundError extends BaseError {
   constructor() {
-    super("CredentialNotFoundError", "Account with provided credentials is not found.", 404);
+    super(
+      "CredentialNotFoundError",
+      "Account with provided credentials is not found.",
+      404,
+    );
   }
 }
 
@@ -37,8 +41,7 @@ export class AuthenticationRequiredError extends BaseError {
     super(
       "AuthenticationRequiredError",
       "Authentication credentials were not provided.",
-      401
+      401,
     );
   }
 }
-

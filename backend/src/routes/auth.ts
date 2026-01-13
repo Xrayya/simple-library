@@ -1,16 +1,17 @@
 import { Hono } from "hono";
+import { getCookie, setCookie } from "hono/cookie";
+import { InvalidTokenError } from "../exceptions/auth";
 import { validateJsonRequest } from "../middlewares/validation";
-import { loginSchema, registerSchema } from "../validation-schemas/auth";
 import {
   createToken,
+  getAuthInfo,
   login,
   logout,
   refreshAccessToken,
   register,
 } from "../services/auth";
-import { getCookie, setCookie } from "hono/cookie";
-import { InvalidTokenError } from "../exceptions/auth";
 import { detectBrowserClient } from "../utils";
+import { loginSchema, registerSchema } from "../validation-schemas/auth";
 
 export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
   .use(async (c, next) => {

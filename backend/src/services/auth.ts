@@ -1,15 +1,16 @@
 import { eq, or } from "drizzle-orm";
 import { DrizzleQueryError } from "drizzle-orm/errors";
+import { JWTPayload } from "jose";
 import postgres from "postgres";
 import db from "../db/db";
-import { hasher, jwt } from "../utils";
-import { UnknownError } from "../exceptions/base";
 import { refreshTokens, users } from "../db/schema";
 import {
-  EmailAlreadyExistsError,
   CredentialNotFoundError,
+  EmailAlreadyExistsError,
   InvalidTokenError,
 } from "../exceptions/auth";
+import { UnknownError } from "../exceptions/base";
+import { hasher, jwt } from "../utils";
 
 export async function register(
   email: string,
@@ -145,9 +146,7 @@ export async function refreshAccessToken(
   return accessToken;
 }
 
-export async function logout(
-  refreshToken: string,
-): Promise<void> {
+export async function logout(refreshToken: string): Promise<void> {
   const result = await db()
     .delete(refreshTokens)
     .where(eq(refreshTokens.token, refreshToken))

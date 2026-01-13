@@ -1,7 +1,7 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload, jwtVerify } from "jose";
-import { detectBrowserClient, SECRET } from "../utils";
+import { detectBrowserClient, jwt, SECRET } from "../utils";
 import {
   AuthenticationRequiredError,
   InvalidTokenError,
@@ -25,7 +25,7 @@ export const authMiddleware = createMiddleware<{
   }
 
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwt.verify(token);
 
     c.set(
       "user",

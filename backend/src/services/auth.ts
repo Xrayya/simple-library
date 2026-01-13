@@ -62,7 +62,7 @@ export async function register(
 export async function login(
   usernameOrEmail: string,
   password: string,
-): Promise<{ userId: string; username: string; email: string }> {
+): Promise<{ userId: string; username: string; email: string; role: string }> {
   const user = await db()
     .select()
     .from(users)
@@ -84,6 +84,7 @@ export async function login(
     userId: user[0].id,
     username: user[0].username,
     email: user[0].email,
+    role: user[0].role,
   };
 }
 

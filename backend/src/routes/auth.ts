@@ -59,6 +59,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
         validLogin: {
           username: validUser.username,
           email: validUser.email,
+          role: validUser.role,
           accessToken: c.get("isBrowserClient") ? undefined : accessToken,
           refreshToken: c.get("isBrowserClient") ? undefined : refreshToken,
         },

@@ -2,9 +2,9 @@ import { eq, or } from "drizzle-orm";
 import { DrizzleQueryError } from "drizzle-orm/errors";
 import postgres from "postgres";
 import db from "../db/db";
-import { refreshTokens, users, UserType } from "../db/schema";
 import { hasher, jwt } from "../utils";
 import { UnknownError } from "../exceptions/base";
+import { refreshTokens, users } from "../db/schema";
 import {
   EmailAlreadyExistsError,
   CredentialNotFoundError,
@@ -88,7 +88,7 @@ export async function login(
 }
 
 export async function createToken(
-  user: Pick<UserType, "id" | "username" | "email">,
+  user: { id: string; username: string; email: string; role: string },
   deviceId: string,
   expiresIn: number,
 ): Promise<{ refreshToken: string; accessToken: string }> {
@@ -107,6 +107,7 @@ export async function createToken(
     userId: user.id,
     username: user.username,
     email: user.email,
+    role: user.role,
   };
 
   const accessToken = await jwt.sign(payload);

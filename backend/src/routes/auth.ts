@@ -141,7 +141,6 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
       throw new InvalidTokenError();
     }
 
-    const authInfo = getAuthInfo(accessToken);
-
+    const authInfo = await getAuthInfo(accessToken);
     return c.json({ authInfo }, 200);
   });

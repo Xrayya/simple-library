@@ -13,10 +13,12 @@ import { FormField } from "./form-field";
 
 import { loginSchema } from "@backend/validation-schemas/auth";
 
-import { useApiMutation } from "@/hooks/useApi";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import z from "zod";
+import { useApiMutation } from "@/hooks/api";
+
+import { BaseError } from "@backend/exceptions/base";
 
 export function LoginForm({
   className,
@@ -28,6 +30,7 @@ export function LoginForm({
       validLogin: {
         username: string;
         email: string;
+        role: string;
         accessToken: string;
         refreshToken: string;
       };
@@ -66,10 +69,10 @@ export function LoginForm({
         });
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
-      } catch (error: any) {
+      } catch (error) {
         console.error("Registration error:", error);
         toast("Registration failed", {
-          description: error?.message || "An error occurred",
+          description: (error as BaseError)?.message || "An error occurred",
           className: "!text-destructive",
           descriptionClassName: "!text-destructive",
           closeButton: true,

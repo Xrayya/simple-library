@@ -1,10 +1,10 @@
-import { useApiMutation } from "@/hooks/useApi";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { useApiMutation } from "@/hooks/api";
 
 export function LogoutButton({
   className,

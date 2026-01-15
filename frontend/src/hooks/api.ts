@@ -1,8 +1,8 @@
 import {
-  useQuery,
   useMutation,
-  type UseQueryOptions,
+  useQuery,
   type UseMutationOptions,
+  type UseQueryOptions,
 } from "@tanstack/react-query";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -21,8 +21,10 @@ async function fetcher<T>(
   if (response.status === 401 && auth) {
     const payload: any = await response.json();
     console.error("Unauthorized access - 401", payload);
+
     await fetch(BASE_URL + "/auth/refresh", {
       credentials: "include",
+      method: "POST",
     });
 
     response = await fetch(BASE_URL + url, {
@@ -37,6 +39,7 @@ async function fetcher<T>(
     console.error("Error fetching data:", payload);
     throw new Error(
       payload?.error?.message || "An error occurred while fetching data",
+      { cause: payload?.error?.name },
     );
   }
 
@@ -84,5 +87,6 @@ export function useApiMutation<TInput = unknown, TOutput = unknown>(
         auth,
       ),
     ...options?.mutation,
+    onError: (error: Error) => { },
   });
 }

@@ -1,34 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApiMutation } from "@/hooks/useApi";
+import { useApiQuery } from "@/hooks/api";
 import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd } from "lucide-react";
 import { useEffect } from "react";
 
-export const Route = createFileRoute("/(utils)/check-cookie")({
+export const Route = createFileRoute("/_auth-protected/books/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const checkCookies = useApiMutation<
-    void,
-    {
-      accessToken: string;
-      refreshToken: string;
-    }
-  >("/utils/get-cookies", "POST", {
-    fetcher: { credentials: "include" },
-  });
+  const { isPending, isSuccess, isError, data, error } = useApiQuery<{
+    message: string;
+  }>(["books"], "/books", undefined, true);
 
-  useEffect(() => {
-    checkCookies.mutate();
-  }, []);
-
-  if (checkCookies.isSuccess) {
-    const { accessToken, refreshToken } = checkCookies.data;
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);
-  }
+  useEffect(() => { }, []);
 
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -42,35 +28,27 @@ function RouteComponent() {
         <div className={cn("flex flex-col gap-6")}>
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Cookie Checker</CardTitle>
+              <CardTitle className="text-xl">Book Routes Access</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center justify-center gap-4">
                 <div>
-                  {checkCookies.isPending && (
-                    <span className="text-muted-foreground">
-                      Checking cookies...
-                    </span>
+                  {isPending && (
+                    <span className="text-muted-foreground">Requesting...</span>
                   )}
-                  {checkCookies.isSuccess && (
-                    <span className="text-green-500">Cookies are existed!</span>
+                  {isSuccess && (
+                    <span className="text-green-500">Request Success</span>
                   )}
-                  {checkCookies.isError && (
+                  {isError && (
                     <span className="text-red-500">
-                      Failed to check cookies.
+                      Request failed: {error?.message}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col w-full">
-                  <div>Access Token:</div>
+                  <div>Data Token:</div>
                   <div className="text-sm text-muted-foreground wrap-break-word">
-                    {checkCookies.data?.accessToken || "N/A"}
-                  </div>
-                </div>
-                <div className="flex flex-col w-full">
-                  <div>Refresh Token:</div>
-                  <div className="text-sm text-muted-foreground">
-                    {checkCookies.data?.refreshToken || "N/A"}
+                    {data?.message || "N/A"}
                   </div>
                 </div>
               </div>

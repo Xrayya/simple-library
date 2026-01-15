@@ -10,7 +10,13 @@ import reportWebVitals from "./reportWebVitals.ts";
 import "./styles.css";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 5,
+    }
+  }
+});
 
 // Create a new router instance
 const router = createRouter({

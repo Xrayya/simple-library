@@ -12,12 +12,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { FormField } from "./form-field";
 
-import { useApiMutation } from "@/hooks/useApi";
 import { registerSchema } from "@backend/validation-schemas/auth";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 
 import z from "zod";
 import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/api";
 
 export function RegisterForm({
   className,

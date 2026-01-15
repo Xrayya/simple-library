@@ -2,8 +2,7 @@ import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload } from "jose";
 import {
-  AuthenticationRequiredError,
-  InvalidTokenError,
+  AuthenticationRequiredError
 } from "../exceptions/auth";
 import { detectBrowserClient, jwt } from "../utils";
 
@@ -25,20 +24,16 @@ export const authMiddleware = createMiddleware<{
     throw new AuthenticationRequiredError();
   }
 
-  try {
-    const { payload } = await jwt.verify(token);
+  const { payload } = await jwt.verify(token);
 
-    c.set(
-      "user",
-      payload as JWTPayload & {
-        userId: string;
-        username: string;
-        email: string;
-        role: string;
-      },
-    );
-    await next();
-  } catch (err) {
-    throw new InvalidTokenError();
-  }
+  c.set(
+    "user",
+    payload as JWTPayload & {
+      userId: string;
+      username: string;
+      email: string;
+      role: string;
+    },
+  );
+  await next();
 });

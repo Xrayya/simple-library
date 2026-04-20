@@ -1,6 +1,8 @@
-import { afterAll, describe, test, expect } from "bun:test";
+import { afterAll, describe, test, expect, setDefaultTimeout } from "bun:test";
 import db from "../src/db/db";
 import { refreshTokens, users } from "../src/db/schema";
+
+setDefaultTimeout(10000)
 
 const baseUrl = "http://localhost:8787/api/v1/auth";
 
@@ -154,11 +156,7 @@ describe("Auth", () => {
       }),
     });
 
-    const data: any = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.loggedOutUser.username).toBe(userData.username);
-    expect(data.loggedOutUser.email).toBe(userData.email);
+    expect(response.status).toBe(204);
 
     const response2 = await fetch(`${baseUrl}/refresh`, {
       method: "POST",

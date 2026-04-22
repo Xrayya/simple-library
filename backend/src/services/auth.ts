@@ -26,14 +26,14 @@ export async function register(
           username,
           passwordHash: hasher.encrypt(password),
         })
-        .returning()
+        .returning({
+          email: users.email,
+          username: users.username,
+          timestamp: users.createdAt,
+        })
     )[0];
 
-    return {
-      email: result.email,
-      username: result.username,
-      timestamp: result.createdAt,
-    };
+    return result;
   } catch (error) {
     if (!(error instanceof DrizzleQueryError)) {
       throw new UnknownError(
@@ -94,7 +94,7 @@ export async function createToken(
   deviceId: string,
   expiresIn: number,
 ): Promise<{ refreshToken: string; accessToken: string }> {
-  const { token: refreshToken } = (
+  const { refreshToken } = (
     await db()
       .insert(refreshTokens)
       .values({
@@ -102,7 +102,9 @@ export async function createToken(
         deviceId,
         expiredAt: new Date(Date.now() + expiresIn * 1000),
       })
-      .returning()
+      .returning({
+        refreshToken: refreshTokens.token,
+      })
   )[0];
 
   const payload = {
@@ -150,7 +152,9 @@ export async function logout(refreshToken: string): Promise<void> {
   const result = await db()
     .delete(refreshTokens)
     .where(eq(refreshTokens.token, refreshToken))
-    .returning();
+    .returning({
+      id: refreshTokens.id,
+    });
 
   if (result.length === 0) {
     throw new InvalidTokenError();

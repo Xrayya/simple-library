@@ -19,23 +19,22 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     await next();
   })
   .post("/register", ...validateJsonRequest(registerSchema), async (c) => {
-    const { username, email, password } = c.req.valid("json");
-    const newUser = await register(email, username, password);
+    const payload = c.req.valid("json");
+    const newUser = await register(payload);
 
     return c.json({ account: newUser }, 201);
   })
   .post("/login", ...validateJsonRequest(loginSchema), async (c) => {
     const { usernameOrEmail, password, deviceId } = c.req.valid("json");
-    const validUser = await login(usernameOrEmail, password);
+    const validUser = await login({ usernameOrEmail, password });
 
-    const { accessToken, refreshToken } = await createToken(
-      {
-        id: validUser.userId,
-        ...validUser,
-      },
+    const { accessToken, refreshToken } = await createToken({
+      ...validUser,
+      userEmail: validUser.email,
+      userRole: validUser.role,
       deviceId,
-      60 * 60 * 24 * 30, // 30 days for refresh token
-    );
+      expiresIn: 60 * 60 * 24 * 30, // 30 days for refresh token
+    });
 
     if (c.get("isBrowserClient")) {
       setCookie(c, "accessToken", accessToken, {
@@ -79,7 +78,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
       throw new InvalidTokenError();
     }
 
-    const newAccessToken = await refreshAccessToken(refreshToken);
+    const newAccessToken = await refreshAccessToken({ refreshToken });
 
     if (c.get("isBrowserClient")) {
       setCookie(c, "accessToken", newAccessToken, {
@@ -109,7 +108,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
       throw new InvalidTokenError();
     }
 
-    await logout(refreshToken);
+    await logout({ refreshToken });
 
     if (c.get("isBrowserClient")) {
       setCookie(c, "accessToken", "", {
@@ -141,6 +140,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
       throw new InvalidTokenError();
     }
 
-    const authInfo = await getAuthInfo(accessToken);
+    const authInfo = await getAuthInfo({ accessToken });
     return c.json({ authInfo }, 200);
   });
+

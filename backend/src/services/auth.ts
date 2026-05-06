@@ -12,11 +12,15 @@ import {
 import { UnknownError } from "../exceptions/base";
 import { hasher, jwt } from "../utils";
 
-export async function register(
-  email: string,
-  username: string,
-  password: string,
-): Promise<{ email: string; username: string; timestamp: Date }> {
+export async function register({
+  email,
+  username,
+  password,
+}: {
+  email: string;
+  username: string;
+  password: string;
+}): Promise<{ email: string; username: string; timestamp: Date }> {
   try {
     const result = (
       await db()
@@ -60,10 +64,13 @@ export async function register(
   }
 }
 
-export async function login(
-  usernameOrEmail: string,
-  password: string,
-): Promise<{ userId: string; username: string; email: string; role: string }> {
+export async function login({
+  usernameOrEmail,
+  password,
+}: {
+  usernameOrEmail: string;
+  password: string;
+}): Promise<{ userId: string; username: string; email: string; role: string }> {
   const user = await db()
     .select()
     .from(users)
@@ -89,16 +96,26 @@ export async function login(
   };
 }
 
-export async function createToken(
-  user: { id: string; username: string; email: string; role: string },
-  deviceId: string,
-  expiresIn: number,
-): Promise<{ refreshToken: string; accessToken: string }> {
+export async function createToken({
+  userId,
+  username,
+  userEmail,
+  userRole,
+  deviceId,
+  expiresIn,
+}: {
+  userId: string;
+  username: string;
+  userEmail: string;
+  userRole: string;
+  deviceId: string;
+  expiresIn: number;
+}): Promise<{ refreshToken: string; accessToken: string }> {
   const { refreshToken } = (
     await db()
       .insert(refreshTokens)
       .values({
-        userId: user.id,
+        userId: userId,
         deviceId,
         expiredAt: new Date(Date.now() + expiresIn * 1000),
       })
@@ -108,10 +125,10 @@ export async function createToken(
   )[0];
 
   const payload = {
-    userId: user.id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
+    userId,
+    username,
+    email: userEmail,
+    role: userRole,
   };
 
   const accessToken = await jwt.sign(payload);
@@ -119,9 +136,11 @@ export async function createToken(
   return { refreshToken, accessToken };
 }
 
-export async function refreshAccessToken(
-  refreshToken: string,
-): Promise<string> {
+export async function refreshAccessToken({
+  refreshToken,
+}: {
+  refreshToken: string;
+}): Promise<string> {
   const user = await db()
     .select({
       userId: users.id,
@@ -148,7 +167,11 @@ export async function refreshAccessToken(
   return accessToken;
 }
 
-export async function logout(refreshToken: string): Promise<void> {
+export async function logout({
+  refreshToken,
+}: {
+  refreshToken: string;
+}): Promise<void> {
   const result = await db()
     .delete(refreshTokens)
     .where(eq(refreshTokens.token, refreshToken))
@@ -161,9 +184,11 @@ export async function logout(refreshToken: string): Promise<void> {
   }
 }
 
-export async function getAuthInfo(
-  accessToken: string,
-): Promise<{ username: string; email: string; role: string }> {
+export async function getAuthInfo({
+  accessToken,
+}: {
+  accessToken: string;
+}): Promise<{ username: string; email: string; role: string }> {
   const { userId } = (await jwt.verify(accessToken)) as JWTPayload & {
     userId: string;
     username: string;

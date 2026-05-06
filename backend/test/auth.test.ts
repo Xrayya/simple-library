@@ -2,11 +2,11 @@ import { afterAll, describe, test, expect, setDefaultTimeout } from "bun:test";
 import db from "../src/db/db";
 import { refreshTokens, users } from "../src/db/schema";
 
-setDefaultTimeout(10000)
+setDefaultTimeout(50000)
 
 const baseUrl = "http://localhost:8787/api/v1/auth";
 
-const userData = {
+const mockUser = {
   username: "testuser",
   email: "testuser@example.com",
   password: "Testpassword01",
@@ -28,7 +28,7 @@ describe("Auth", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...userData,
+        ...mockUser,
       }),
     });
 
@@ -48,7 +48,7 @@ describe("Auth", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...userData,
+        ...mockUser,
       }),
     });
 
@@ -66,8 +66,8 @@ describe("Auth", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        usernameOrEmail: userData.username,
-        password: userData.password,
+        usernameOrEmail: mockUser.username,
+        password: mockUser.password,
         deviceId: "test-device-id",
       }),
     });

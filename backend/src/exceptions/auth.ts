@@ -45,3 +45,13 @@ export class AuthenticationRequiredError extends BaseError {
     );
   }
 }
+
+export class AdminRequiredError extends BaseError {
+  constructor() {
+    super(
+      "AdminRequiredError",
+      "You do not have permission to access this resource.",
+      403,
+    );
+  }
+}

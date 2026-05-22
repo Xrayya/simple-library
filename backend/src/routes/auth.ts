@@ -10,7 +10,7 @@ import {
   refreshAccessToken,
   register,
 } from "../services/auth";
-import { detectBrowserClient } from "../utils";
+import { detectBrowserClient, getBearerToken } from "../utils";
 import { loginSchema, registerSchema } from "../validation-schemas/auth";
 
 export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
@@ -37,14 +37,6 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     });
 
     if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", accessToken, {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 60 * 60 * 2, // 2 hours
-        path: "/",
-      });
-
       setCookie(c, "refreshToken", refreshToken, {
         httpOnly: true,
         // secure: true,
@@ -60,7 +52,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
           username: validUser.username,
           email: validUser.email,
           role: validUser.role,
-          accessToken: c.get("isBrowserClient") ? undefined : accessToken,
+          accessToken,
           refreshToken: c.get("isBrowserClient") ? undefined : refreshToken,
         },
       },
@@ -71,7 +63,8 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     const refreshToken = (
       c.get("isBrowserClient")
         ? getCookie(c, "refreshToken")
-        : (await c.req.json()).refreshToken
+        : ((await c.req.json().catch(() => ({}))) as { refreshToken?: string })
+            .refreshToken
     ) as string;
 
     if (!refreshToken) {
@@ -79,29 +72,14 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     }
 
     const newAccessToken = await refreshAccessToken({ refreshToken });
-
-    if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", newAccessToken, {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 60 * 60 * 2, // 2 hours
-        path: "/",
-      });
-    }
-
-    if (!c.get("isBrowserClient")) {
-      return c.json({ accessToken: newAccessToken }, 200);
-    }
-
-    c.status(204);
-    return c.body(null);
+    return c.json({ accessToken: newAccessToken }, 200);
   })
   .post("/logout", async (c) => {
     const refreshToken = (
       c.get("isBrowserClient")
         ? getCookie(c, "refreshToken")
-        : (await c.req.json()).refreshToken
+        : ((await c.req.json().catch(() => ({}))) as { refreshToken?: string })
+            .refreshToken
     ) as string;
 
     if (!refreshToken) {
@@ -111,14 +89,6 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     await logout({ refreshToken });
 
     if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", "", {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 0,
-        path: "/",
-      });
-
       setCookie(c, "refreshToken", "", {
         httpOnly: true,
         // secure: true,
@@ -132,9 +102,7 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     return c.body(null);
   })
   .get("/me", async (c) => {
-    const accessToken = c.get("isBrowserClient")
-      ? getCookie(c, "accessToken")
-      : c.req.header("Authorization")?.split(" ")[1];
+    const accessToken = getBearerToken(c.req.header("Authorization"));
 
     if (!accessToken) {
       throw new InvalidTokenError();
@@ -143,4 +111,3 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     const authInfo = await getAuthInfo({ accessToken });
     return c.json({ authInfo }, 200);
   });
-

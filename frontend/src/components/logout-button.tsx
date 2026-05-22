@@ -4,7 +4,7 @@ import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { useApiMutation } from "@/hooks/api";
+import { clearAccessToken, useApiMutation } from "@/hooks/api";
 
 export function LogoutButton({
   className,
@@ -29,6 +29,7 @@ export function LogoutButton({
     onSubmit: async () => {
       try {
         await logout.mutateAsync();
+        clearAccessToken();
 
         toast("Logout successful", {
           closeButton: true,

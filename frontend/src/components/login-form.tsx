@@ -16,7 +16,7 @@ import { loginSchema } from "@backend/validation-schemas/auth";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import z from "zod";
-import { useApiMutation } from "@/hooks/api";
+import { setAccessToken, useApiMutation } from "@/hooks/api";
 
 import { BaseError } from "@backend/exceptions/base";
 
@@ -32,7 +32,7 @@ export function LoginForm({
         email: string;
         role: string;
         accessToken: string;
-        refreshToken: string;
+        refreshToken?: string;
       };
     }
   >("/auth/login", "POST", { fetcher: { credentials: "include" } });
@@ -54,6 +54,8 @@ export function LoginForm({
           ...values.value,
           deviceId: "web-client",
         });
+
+        setAccessToken(validLogin.accessToken);
 
         console.log("Login successful:", validLogin);
 

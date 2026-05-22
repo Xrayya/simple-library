@@ -21,8 +21,7 @@ export const jwt = {
     return await new SignJWT(payload)
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      // .setExpirationTime("10m")
-      .setExpirationTime("4s") // 4 seconds for testing purposes
+      .setExpirationTime("15m")
       .sign(SECRET);
   },
   verify: async (token: string): Promise<JWTPayload> => {
@@ -42,4 +41,18 @@ export function detectBrowserClient(c: Context): boolean {
 
   // Simple detection
   return userAgent.includes("Mozilla") || !!origin || !!secFetch;
+}
+
+export function getBearerToken(authorizationHeader?: string): string | undefined {
+  if (!authorizationHeader) {
+    return undefined;
+  }
+
+  const [scheme, token] = authorizationHeader.split(" ");
+
+  if (scheme?.toLowerCase() !== "bearer" || !token) {
+    return undefined;
+  }
+
+  return token;
 }

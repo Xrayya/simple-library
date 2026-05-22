@@ -1,10 +1,10 @@
-import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload } from "jose";
 import {
-  AuthenticationRequiredError
+  AdminRequiredError,
+  AuthenticationRequiredError,
 } from "../exceptions/auth";
-import { detectBrowserClient, jwt } from "../utils";
+import { getBearerToken, jwt } from "../utils";
 
 export const authMiddleware = createMiddleware<{
   Variables: {
@@ -16,9 +16,7 @@ export const authMiddleware = createMiddleware<{
     };
   };
 }>(async (c, next) => {
-  const token = detectBrowserClient(c)
-    ? getCookie(c, "accessToken")
-    : c.req.header("Authorization")?.split(" ")[1];
+  const token = getBearerToken(c.req.header("Authorization"));
 
   if (!token) {
     throw new AuthenticationRequiredError();
@@ -35,5 +33,22 @@ export const authMiddleware = createMiddleware<{
       role: string;
     },
   );
+  await next();
+});
+
+export const adminMiddleware = createMiddleware<{
+  Variables: {
+    user: JWTPayload & {
+      userId: string;
+      username: string;
+      email: string;
+      role: string;
+    };
+  };
+}>(async (c, next) => {
+  if (c.var.user.role !== "admin") {
+    throw new AdminRequiredError();
+  }
+
   await next();
 });

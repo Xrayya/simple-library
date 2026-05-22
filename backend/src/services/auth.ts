@@ -146,6 +146,7 @@ export async function refreshAccessToken({
       userId: users.id,
       username: users.username,
       email: users.email,
+      role: users.role,
     })
     .from(refreshTokens)
     .innerJoin(users, eq(refreshTokens.userId, users.id))
@@ -160,6 +161,7 @@ export async function refreshAccessToken({
     userId: user[0].userId,
     username: user[0].username,
     email: user[0].email,
+    role: user[0].role,
   };
 
   const accessToken = await jwt.sign(payload);

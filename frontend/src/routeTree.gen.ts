@@ -58,7 +58,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/check-cookie': typeof UtilsCheckCookieRoute
-  '/books': typeof AuthProtectedBooksIndexRoute
+  '/books/': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,7 +86,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/check-cookie'
-    | '/books'
+    | '/books/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/about' | '/login' | '/register' | '/check-cookie' | '/books'
   id:
@@ -135,7 +135,7 @@ declare module '@tanstack/react-router' {
     '/_auth-protected': {
       id: '/_auth-protected'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AuthProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -156,7 +156,7 @@ declare module '@tanstack/react-router' {
     '/_auth-protected/books/': {
       id: '/_auth-protected/books/'
       path: '/books'
-      fullPath: '/books'
+      fullPath: '/books/'
       preLoaderRoute: typeof AuthProtectedBooksIndexRouteImport
       parentRoute: typeof AuthProtectedRoute
     }

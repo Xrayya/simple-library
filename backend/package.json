@@ -7,8 +7,6 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "@types/bun": "^1.2.19",
-    "@types/node": "^24.1.0",
     "bcrypt-ts": "^7.1.0",
     "drizzle-orm": "^0.44.3",
     "hono": "^4.8.5",
@@ -17,7 +15,9 @@
     "zod": "^4.0.10"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "@types/node": "^25.9.2",
     "drizzle-kit": "^0.31.4",
-    "wrangler": "^4.28.0"
+    "wrangler": "^4.98.0"
   }
 }

@@ -10,6 +10,23 @@ type ReturnedBookType = {
   year: number | null;
   edition: number | null;
   description: string | null;
+  categoryId: string;
+  coverUrl: string | null;
+  totalCopies: number;
+  availableCopies: number;
+  createdAt: Date;
+  updatedAt: Date | null;
+};
+
+type ReturnedBookWithCategoryNameType = {
+  id: string;
+  title: string;
+  author: string;
+  publisher: string | null;
+  year: number | null;
+  edition: number | null;
+  description: string | null;
+  categoryId: string;
   categoryName: string;
   coverUrl: string | null;
   totalCopies: number;
@@ -38,7 +55,7 @@ export async function insertBook({
   categoryId: string;
   coverUrl?: string;
   totalCopies: number;
-}): Promise<{ id: string; title: string; timestamp: Date }[]> {
+}): Promise<{ bookId: string; title: string; timestamp: Date }[]> {
   const result = await db()
     .insert(books)
     .values({
@@ -54,7 +71,7 @@ export async function insertBook({
       availableCopies: totalCopies,
     })
     .returning({
-      id: books.id,
+      bookId: books.id,
       title: books.title,
       timestamp: books.createdAt,
     });
@@ -63,7 +80,9 @@ export async function insertBook({
 }
 
 // WARNING: I just realized that these null optional is kinda dangerous
-export async function getAllBooks(): Promise<ReturnedBookType[]> {
+export async function getAllBooks(): Promise<
+  ReturnedBookWithCategoryNameType[]
+> {
   const result = await db()
     .select({
       id: books.id,
@@ -73,6 +92,7 @@ export async function getAllBooks(): Promise<ReturnedBookType[]> {
       year: books.year,
       edition: books.edition,
       description: books.description,
+      categoryId: books.categoryId,
       categoryName: categories.name,
       coverUrl: books.coverUrl,
       totalCopies: books.totalCopies,
@@ -86,7 +106,9 @@ export async function getAllBooks(): Promise<ReturnedBookType[]> {
   return result;
 }
 
-export async function getBooksFiltered(): Promise<ReturnedBookType[]> {
+export async function getBooksFiltered(): Promise<
+  ReturnedBookWithCategoryNameType[]
+> {
   const result = await db()
     .select({
       id: books.id,
@@ -96,6 +118,7 @@ export async function getBooksFiltered(): Promise<ReturnedBookType[]> {
       year: books.year,
       edition: books.edition,
       description: books.description,
+      categoryId: books.categoryId,
       categoryName: categories.name,
       coverUrl: books.coverUrl,
       totalCopies: books.totalCopies,
@@ -107,4 +130,47 @@ export async function getBooksFiltered(): Promise<ReturnedBookType[]> {
     .innerJoin(categories, eq(books.categoryId, categories.id));
 
   return result;
+}
+
+export async function updateBook({
+  bookId,
+  updatedBookInfo,
+}: {
+  bookId: string;
+  updatedBookInfo: {
+    title?: string | undefined;
+    author?: string | undefined;
+    publisher?: string | undefined;
+    year?: number | undefined;
+    edition?: number | undefined;
+    description?: string | undefined;
+    categoryId?: string | undefined;
+    coverUrl?: string | undefined;
+    totalCopies?: number | undefined;
+  };
+}): Promise<ReturnedBookType> {
+  const result = await db()
+    .update(books)
+    .set(updatedBookInfo)
+    .where(eq(books.id, bookId))
+    .returning();
+
+  return result[0];
+}
+
+export async function deleteBook({
+  bookId,
+}: {
+  bookId: string;
+}): Promise<{ bookId: string; title: string; timestamp: Date }> {
+  const result = await db()
+    .delete(books)
+    .where(eq(books.id, bookId))
+    .returning({
+      bookId: books.id,
+      title: books.title,
+      timestamp: books.createdAt,
+    });
+
+  return result[0];
 }

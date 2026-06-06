@@ -20,18 +20,6 @@ export const insertBookSchema = new BaseRequestSchema({
   querySchema: z.object({}),
 });
 
-export const insertBookJsonSchema = z.object({
-  title: z.string(),
-  author: z.string(),
-  publisher: z.string(),
-  year: z.int(),
-  edition: z.int(),
-  description: z.string(),
-  categoryId: z.string(),
-  coverUrl: z.url().optional(),
-  totalCopies: z.int(),
-});
-
 export const updateBookSchema = new BaseRequestSchema({
   jsonSchema: z.object({
     title: z.string().optional(),

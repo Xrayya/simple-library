@@ -2,13 +2,15 @@ import { Hono } from "hono";
 import { authMiddleware } from "../middlewares/auth";
 import { validateJsonRequest } from "../middlewares/validation";
 import {
-  insertBookJsonSchema,
+  deleteBook,
+  getAllBooks,
+  insertBook,
+  updateBook,
+} from "../services/books";
+import {
   insertBookSchema,
   updateBookSchema,
 } from "../validation-schemas/books";
-import { getAllBooks, insertBook } from "../services/books";
-import { validator } from "hono/validator";
-import { InvalidRequestError } from "../exceptions/validation";
 
 export const booksRoute = new Hono()
   .get("/", authMiddleware, async (c) => {
@@ -16,35 +18,25 @@ export const booksRoute = new Hono()
 
     return c.json({ books }, 200);
   })
-  .post(
-    "/",
-    validator("json", (value, _) => {
-      const result = insertBookJsonSchema.safeParse(value);
-
-      if (!result.success) {
-        throw new InvalidRequestError(
-          "json payload",
-          result?.error.issues.map(({ path, message, code }) => {
-            return {
-              property: path.join("."),
-              code,
-              message,
-            };
-          }),
-        );
-      }
-
-      return result.data;
-    }),
-    async (c) => {
-      const payload = c.req.valid("json");
-
-      const newBook = await insertBook(payload);
-
-      return c.json({ newBook }, 201);
-    },
-  )
-  .put("/:bookId", ...validateJsonRequest(updateBookSchema), async (c) => {
+  .post("/", ...validateJsonRequest(insertBookSchema), async (c) => {
     const payload = c.req.valid("json");
+
+    const newBook = await insertBook(payload);
+
+    return c.json({ newBook }, 201);
   })
-  .delete("/:bookId", async (c) => { });
+  .put("/:bookId", ...validateJsonRequest(updateBookSchema), async (c) => {
+    const bookId = c.req.param("bookId");
+    const payload = c.req.valid("json");
+
+    const updatedBook = await updateBook({ bookId, updatedBookInfo: payload });
+
+    return c.json({ updatedBook }, 200);
+  })
+  .delete("/:bookId", async (c) => {
+    const bookId = c.req.param("bookId");
+
+    const deletedBook = await deleteBook({ bookId });
+
+    return c.json({ deletedBook }, 200);
+  });

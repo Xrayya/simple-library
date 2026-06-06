@@ -53,7 +53,7 @@ export const books = pgTable(BOOK_TABLE_NAME, {
   description: text("description"),
   categoryId: uuid("category_id").references(() => categories.id, {
     onDelete: "set null",
-  }),
+  }).notNull(),
   coverUrl: text("cover_url"),
   totalCopies: integer("total_copies").notNull().default(1),
   availableCopies: integer("available_copies").notNull().default(1),

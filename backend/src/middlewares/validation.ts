@@ -2,6 +2,7 @@ import { createFactory } from "hono/factory";
 import type { ZodRawShape } from "zod";
 import { validator } from "hono/validator";
 import { BaseRequestSchema } from "../validation-schemas/base";
+import { InvalidRequestError } from "../exceptions/validation";
 
 const handlersFactory = createFactory();
 
@@ -16,89 +17,74 @@ export const validateRequest = <
   schema: BaseRequestSchema<TJson, TQuery, THeader, TParams, TCookie, TForm>,
 ) => {
   return handlersFactory.createHandlers(
-    validator("header", (value, c) => {
-      // if (!schema.header) return value;
-
+    validator("header", (value, _) => {
       const result = schema.header?.safeParse(value);
-      if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request header",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+      if (!result.success) {
+        throw new InvalidRequestError(
+          "header",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 
-      return result?.data;
+      return result.data;
     }),
-    validator("param", (value, c) => {
-      // if (!schema.param) return value;
+    validator("param", (value, _) => {
 
       const result = schema.param?.safeParse(value);
       if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request url parameter",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+        throw new InvalidRequestError(
+          "url parameter",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 
       return result?.data;
     }),
-    validator("query", (value, c) => {
+    validator("query", (value, _) => {
       // if (!schema.query) return value;
 
       const result = schema.query?.safeParse(value);
       if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request query params",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+        throw new InvalidRequestError(
+          "query parameter",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 
       return result?.data;
     }),
-    validator("cookie", (value, c) => {
+    validator("cookie", (value, _) => {
       // if (!schema.cookie) return value;
 
       const result = schema.cookie?.safeParse(value);
       if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request cookie",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+        throw new InvalidRequestError(
+          "cookie",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 
@@ -121,21 +107,18 @@ export const validateJsonRequest = <
 
   return handlersFactory.createHandlers(
     ...base,
-    validator("json", (value, c) => {
+    validator("json", (value, _) => {
       const result = schema.json?.safeParse(value);
       if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request body",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+        throw new InvalidRequestError(
+          "json payload",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 
@@ -158,23 +141,20 @@ export const validateFormRequest = <
 
   return handlersFactory.createHandlers(
     ...base,
-    validator("form", (value, c) => {
+    validator("form", (value, _) => {
       // if (!schema.form) return value;
 
       const result = schema.form?.safeParse(value);
       if (!result?.success) {
-        return c.json(
-          {
-            message: "Invalid request form data",
-            traces: result?.error.issues.map(({ path, message, code }) => {
-              return {
-                property: path.join("."),
-                code,
-                message,
-              };
-            }),
-          },
-          400,
+        throw new InvalidRequestError(
+          "form payload",
+          result?.error.issues.map(({ path, message, code }) => {
+            return {
+              property: path.join("."),
+              code,
+              message,
+            };
+          }),
         );
       }
 

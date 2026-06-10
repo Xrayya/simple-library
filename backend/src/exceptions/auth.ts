@@ -45,3 +45,9 @@ export class AuthenticationRequiredError extends BaseError {
     );
   }
 }
+
+export class UnauthorizedError extends BaseError {
+  constructor() {
+    super("UnauthorizedError", "Unauthorized Access.", 403);
+  }
+}

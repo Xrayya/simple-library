@@ -1,9 +1,7 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { JWTPayload } from "jose";
-import {
-  AuthenticationRequiredError
-} from "../exceptions/auth";
+import { AuthenticationRequiredError } from "../exceptions/auth";
 import { detectBrowserClient, jwt } from "../utils";
 
 export const authMiddleware = createMiddleware<{
@@ -12,7 +10,7 @@ export const authMiddleware = createMiddleware<{
       userId: string;
       username: string;
       email: string;
-      role: string;
+      role: "user" | "admin";
     };
   };
 }>(async (c, next) => {
@@ -32,7 +30,7 @@ export const authMiddleware = createMiddleware<{
       userId: string;
       username: string;
       email: string;
-      role: string;
+      role: "user" | "admin";
     },
   );
   await next();

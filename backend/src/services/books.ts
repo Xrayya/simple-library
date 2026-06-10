@@ -18,21 +18,8 @@ type ReturnedBookType = {
   updatedAt: Date | null;
 };
 
-type ReturnedBookWithCategoryNameType = {
-  id: string;
-  title: string;
-  author: string;
-  publisher: string | null;
-  year: number | null;
-  edition: number | null;
-  description: string | null;
-  categoryId: string;
+type ReturnedBookWithCategoryNameType = ReturnedBookType & {
   categoryName: string;
-  coverUrl: string | null;
-  totalCopies: number;
-  availableCopies: number;
-  createdAt: Date;
-  updatedAt: Date | null;
 };
 
 export async function insertBook({

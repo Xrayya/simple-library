@@ -2,8 +2,6 @@ import { compareSync, hashSync } from "bcrypt-ts";
 import { Context } from "hono";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { InvalidTokenError } from "./exceptions/auth";
-import { JWTExpired } from "jose/errors";
-import { UnknownError } from "./exceptions/base";
 
 export const SECRET = new TextEncoder().encode(process.env.SECRET_KEY!);
 

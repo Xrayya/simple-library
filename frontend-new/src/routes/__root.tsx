@@ -1,3 +1,6 @@
+import { Header } from "#/components/header";
+import { Toaster } from "#/components/ui/toast";
+import { TooltipProvider } from "#/components/ui/tooltip";
 import { ThemeProvider } from "#/contexts/theme-context";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,9 +21,13 @@ function RootComponent() {
     <>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-          <Outlet />
+          <TooltipProvider>
+            <Header />
+            <Outlet />
+          </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
+      <Toaster />
       <TanStackDevtools
         config={{
           position: "bottom-right",

@@ -10,11 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthProtectedRouteImport } from './routes/_auth-protected'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as UtilsCheckCookieRouteImport } from './routes/_utils/check-cookie'
+import { Route as AuthProtectedBooksIndexRouteImport } from './routes/_auth-protected/books/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthProtectedRoute = AuthProtectedRouteImport.update({
+  id: '/_auth-protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -22,31 +31,77 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UtilsCheckCookieRoute = UtilsCheckCookieRouteImport.update({
+  id: '/_utils/check-cookie',
+  path: '/check-cookie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthProtectedBooksIndexRoute = AuthProtectedBooksIndexRouteImport.update({
+  id: '/books/',
+  path: '/books/',
+  getParentRoute: () => AuthProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/check-cookie': typeof UtilsCheckCookieRoute
+  '/books/': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/check-cookie': typeof UtilsCheckCookieRoute
+  '/books': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth-protected': typeof AuthProtectedRouteWithChildren
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/_utils/check-cookie': typeof UtilsCheckCookieRoute
+  '/_auth-protected/books/': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    '/' | '/about' | '/login' | '/register' | '/check-cookie' | '/books/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to: '/' | '/about' | '/login' | '/register' | '/check-cookie' | '/books'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth-protected'
+    | '/about'
+    | '/login'
+    | '/register'
+    | '/_utils/check-cookie'
+    | '/_auth-protected/books/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthProtectedRoute: typeof AuthProtectedRouteWithChildren
   AboutRoute: typeof AboutRoute
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
+  UtilsCheckCookieRoute: typeof UtilsCheckCookieRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth-protected': {
+      id: '/_auth-protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthProtectedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -65,12 +127,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_utils/check-cookie': {
+      id: '/_utils/check-cookie'
+      path: '/check-cookie'
+      fullPath: '/check-cookie'
+      preLoaderRoute: typeof UtilsCheckCookieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth-protected/books/': {
+      id: '/_auth-protected/books/'
+      path: '/books'
+      fullPath: '/books/'
+      preLoaderRoute: typeof AuthProtectedBooksIndexRouteImport
+      parentRoute: typeof AuthProtectedRoute
+    }
   }
 }
 
+interface AuthProtectedRouteChildren {
+  AuthProtectedBooksIndexRoute: typeof AuthProtectedBooksIndexRoute
+}
+
+const AuthProtectedRouteChildren: AuthProtectedRouteChildren = {
+  AuthProtectedBooksIndexRoute: AuthProtectedBooksIndexRoute,
+}
+
+const AuthProtectedRouteWithChildren = AuthProtectedRoute._addFileChildren(
+  AuthProtectedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthProtectedRoute: AuthProtectedRouteWithChildren,
   AboutRoute: AboutRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
+  UtilsCheckCookieRoute: UtilsCheckCookieRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -22,7 +22,8 @@ function RouteComponent() {
 
   useEffect(() => {
     checkCookies.mutate();
-  }, [checkCookies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">

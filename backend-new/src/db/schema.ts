@@ -12,6 +12,7 @@ const USER_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-user`;
 const BOOK_CATEGORY_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book-category`;
 const BOOK_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-book`;
 const BORROW_LOG_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-borrow-log`;
+const REFRESH_TOKEN_TABLE_NAME = `${process.env.DATABASE_TABLE_PREFIX!}-refresh-token`;
 
 const timestamps = {
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -84,7 +85,7 @@ export const borrowLogs = pgTable(BORROW_LOG_TABLE_NAME, {
 
 export type BorrowLogType = typeof borrowLogs.$inferSelect;
 
-export const refreshTokens = pgTable("refresh_tokens", {
+export const refreshTokens = pgTable(REFRESH_TOKEN_TABLE_NAME, {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .notNull()

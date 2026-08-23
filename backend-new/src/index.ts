@@ -27,6 +27,8 @@ backend.route("/books", booksRoute);
 backend.route("/utils", utilsRoute);
 
 backend.onError((err, c) => {
+  console.log(err);
+
   if (err instanceof HTTPException) {
     return c.json(
       { error: { name: err.name, message: err.message } },

@@ -2,7 +2,7 @@ import { afterAll, describe, test, expect, setDefaultTimeout } from "bun:test";
 import db from "../src/db/db";
 import { refreshTokens, users } from "../src/db/schema";
 
-setDefaultTimeout(50000)
+setDefaultTimeout(50000);
 
 const baseUrl = "http://localhost:3000/api/v1/auth";
 
@@ -89,7 +89,7 @@ describe("Auth", () => {
     expect(accessToken).toBeDefined();
 
     // NOTE: set access token expire time to 5 second in util file for this testing
-    const response = await fetch(`http://localhost:8787/api/v1/books`, {
+    const response = await fetch(`http://localhost:3000/api/v1/books`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -104,7 +104,7 @@ describe("Auth", () => {
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
     // NOTE: set access token expire time to 5 second in util file for this testing
-    const response = await fetch(`http://localhost:8787/api/v1/books`, {
+    const response = await fetch(`http://localhost:3000/api/v1/books`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -133,7 +133,7 @@ describe("Auth", () => {
 
     accessToken = data.accessToken;
 
-    const response2 = await fetch(`http://localhost:8787/api/v1/books`, {
+    const response2 = await fetch(`http://localhost:3000/api/v1/books`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

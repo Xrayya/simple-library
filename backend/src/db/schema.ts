@@ -92,6 +92,5 @@ export const refreshTokens = pgTable(REFRESH_TOKEN_TABLE_NAME, {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: uuid("token").notNull().unique().defaultRandom(),
-  deviceId: text("device_id").notNull(),
   expiredAt: timestamp("expired_at").notNull(),
 });

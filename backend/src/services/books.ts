@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import db from "../db/db";
 import { books, categories } from "../db/schema";
+import { db } from "../db/db";
 
 type ReturnedBookType = {
   id: string;
@@ -43,7 +43,7 @@ export async function insertBook({
   coverUrl?: string;
   totalCopies: number;
 }): Promise<{ bookId: string; title: string; timestamp: Date }[]> {
-  const result = await db()
+  const result = await db
     .insert(books)
     .values({
       title,
@@ -70,7 +70,7 @@ export async function insertBook({
 export async function getAllBooks(): Promise<
   ReturnedBookWithCategoryNameType[]
 > {
-  const result = await db()
+  const result = await db
     .select({
       id: books.id,
       title: books.title,
@@ -96,7 +96,7 @@ export async function getAllBooks(): Promise<
 export async function getBooksFiltered(): Promise<
   ReturnedBookWithCategoryNameType[]
 > {
-  const result = await db()
+  const result = await db
     .select({
       id: books.id,
       title: books.title,
@@ -136,7 +136,7 @@ export async function updateBook({
     totalCopies?: number | undefined;
   };
 }): Promise<ReturnedBookType> {
-  const result = await db()
+  const result = await db
     .update(books)
     .set(updatedBookInfo)
     .where(eq(books.id, bookId))
@@ -150,7 +150,7 @@ export async function deleteBook({
 }: {
   bookId: string;
 }): Promise<{ bookId: string; title: string; timestamp: Date }> {
-  const result = await db()
+  const result = await db
     .delete(books)
     .where(eq(books.id, bookId))
     .returning({

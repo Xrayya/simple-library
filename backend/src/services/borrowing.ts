@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import db from "../db/db";
 import { borrowLogs } from "../db/schema";
 import { UnauthorizedError } from "../exceptions/auth";
+import { db } from "../db/db";
 
 type ReturnedBorrowingType = {
   id: string;
@@ -89,7 +89,7 @@ export async function getUserBorrowing({ userId }: { userId: string }): Promise<
     bookInfo: ReturnedBookWithCategoryNameType;
   }[]
 > {
-  const result = await db().query.borrowLogs.findMany({
+  const result = await db.query.borrowLogs.findMany({
     where: {
       userId: { eq: userId },
     },
@@ -115,7 +115,7 @@ export async function getBorrowings(): Promise<
     bookInfo: ReturnedBookWithCategoryNameType;
   }[]
 > {
-  const result = await db().query.borrowLogs.findMany({
+  const result = await db.query.borrowLogs.findMany({
     with: {
       book: {
         with: {
@@ -141,7 +141,7 @@ export async function addBorrowing({
   bookId: string;
   dueAt: Date;
 }): Promise<ReturnedBorrowingType> {
-  const result = await db()
+  const result = await db
     .insert(borrowLogs)
     .values({
       userId,
@@ -162,7 +162,7 @@ export async function changeBorrowingBook({
   newBookId: string;
   borrowingId: string;
 }): Promise<ReturnedBorrowingType> {
-  const result = await db()
+  const result = await db
     .update(borrowLogs)
     .set({
       bookId: newBookId,
@@ -184,7 +184,7 @@ export async function cancelBorrowing({
   userId: string;
   borrowingId: string;
 }): Promise<ReturnedBorrowingType> {
-  const result = await db()
+  const result = await db
     .update(borrowLogs)
     .set({
       status: "canceled",

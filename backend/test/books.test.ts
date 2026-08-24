@@ -6,9 +6,9 @@ import {
   setDefaultTimeout,
   test,
 } from "bun:test";
-import db from "../src/db/db";
 import { books, BookType, categories, CategoryType } from "../src/db/schema";
 import { randomInt } from "crypto";
+import { db } from "../src/db/db";
 
 setDefaultTimeout(50000);
 
@@ -46,7 +46,7 @@ const mockBook1: Omit<
 
 describe("Books", () => {
   beforeAll(async () => {
-    categoriesFomDB = await db()
+    categoriesFomDB = await db
       .insert(categories)
       .values(mockCategories.map((categoryName) => ({ name: categoryName })))
       .returning();
@@ -56,8 +56,8 @@ describe("Books", () => {
   });
 
   afterAll(async () => {
-    await db().delete(books);
-    await db().delete(categories);
+    await db.delete(books);
+    await db.delete(categories);
   });
 
   test("should return 201 on valid book addition", async () => {

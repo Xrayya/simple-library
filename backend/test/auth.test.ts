@@ -1,6 +1,6 @@
 import { afterAll, describe, test, expect, setDefaultTimeout } from "bun:test";
-import db from "../src/db/db";
 import { refreshTokens, users } from "../src/db/schema";
+import { db } from "../src/db/db";
 
 setDefaultTimeout(50000);
 
@@ -17,8 +17,8 @@ let refreshToken: string | undefined;
 
 describe("Auth", () => {
   afterAll(async () => {
-    await db().delete(refreshTokens);
-    await db().delete(users);
+    await db.delete(refreshTokens);
+    await db.delete(users);
   });
 
   test("should return 201 on valid registration", async () => {

@@ -109,6 +109,7 @@ describe("Auth Service", () => {
     expect(newUser.userId).toBeString();
     expect(newUser.username).toBe(mockUser[0]!.username);
     expect(newUser.email).toBe(mockUser[0]!.email);
+    expect(newUser.role).toBe("user");
   });
 
   test("should perform proper login with username", async () => {
@@ -120,6 +121,7 @@ describe("Auth Service", () => {
     expect(newUser.userId).toBeString();
     expect(newUser.username).toBe(mockUser[0]!.username);
     expect(newUser.email).toBe(mockUser[0]!.email);
+    expect(newUser.role).toBe("user");
   });
 
   test("should perform proper login for another user with email", async () => {
@@ -131,6 +133,7 @@ describe("Auth Service", () => {
     expect(newUser.userId).toBeString();
     expect(newUser.username).toBe(mockUser[1]!.username);
     expect(newUser.email).toBe(mockUser[1]!.email);
+    expect(newUser.role).toBe("user");
   });
 
   test("should perform proper login for another user with username", async () => {
@@ -142,6 +145,7 @@ describe("Auth Service", () => {
     expect(newUser.userId).toBeString();
     expect(newUser.username).toBe(mockUser[1]!.username);
     expect(newUser.email).toBe(mockUser[1]!.email);
+    expect(newUser.role).toBe("user");
   });
 
   test("should perform proper token creation", async () => {
@@ -166,6 +170,7 @@ describe("Auth Service", () => {
     expect(authInfo).toBeDefined();
     expect(authInfo.username).toBe(mockUser[0]!.username);
     expect(authInfo.email).toBe(mockUser[0]!.email);
+    expect(authInfo.role).toBe("user");
   });
 
   test("acccess token should be invalid after 4s", async () => {
@@ -205,6 +210,7 @@ describe("Auth Service", () => {
     expect(authInfo).toBeDefined();
     expect(authInfo.username).toBe(mockUser[0]!.username);
     expect(authInfo.email).toBe(mockUser[0]!.email);
+    expect(authInfo.role).toBe("user");
   });
 
   test("acccess token should be invalid after 4s after refresh", async () => {

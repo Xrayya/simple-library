@@ -12,7 +12,7 @@ import { randomInt } from "crypto";
 
 setDefaultTimeout(50000);
 
-const baseUrl = "http://localhost:8787/api/v1/auth";
+const baseUrl = "http://localhost:3000/api/v1/auth";
 
 const mockCategories: CategoryType["name"][] = [
   "GENERAL_WORK",

@@ -19,7 +19,7 @@ async function fetcher<T>(
   });
 
   if (response.status === 401 && auth) {
-    const payload: any = await response.json();
+    const payload = await response.json();
     console.error("Unauthorized access - 401", payload);
 
     await fetch(BASE_URL + "/auth/refresh", {
@@ -35,7 +35,7 @@ async function fetcher<T>(
   }
 
   if (!response.ok) {
-    const payload: any = await response.json();
+    const payload = await response.json();
     console.error("Error fetching data:", payload);
     throw new Error(
       payload?.error?.message || "An error occurred while fetching data",
@@ -87,6 +87,5 @@ export function useApiMutation<TInput = unknown, TOutput = unknown>(
         auth,
       ),
     ...options?.mutation,
-    onError: (error: Error) => { },
   });
 }

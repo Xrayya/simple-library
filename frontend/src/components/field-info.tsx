@@ -6,10 +6,10 @@ export function FieldInfo({ field }: { field: AnyFieldApi }) {
   const isValidating = field.state.meta.isValidating;
 
   return (
-    <div className="min-h-[1rem] text-xs mt-1">
+    <div className="mt-1 min-h-4 text-xs">
       {showError && (
         <p className="text-destructive">
-          {field.state.meta.errors 
+          {field.state.meta.errors
             .map((error) => {
               if (
                 typeof error === "object" &&

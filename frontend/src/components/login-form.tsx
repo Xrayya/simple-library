@@ -1,3 +1,4 @@
+import { loginSchema } from "#/validation-schemas/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,26 +7,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useApiMutation } from "@/hooks/api";
 import { cn } from "@/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
-import { FormField } from "./form-field";
-
-import { loginSchema } from "@backend/validation-schemas/auth";
-
-import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
-import { toast } from "sonner";
+import { LoaderCircle } from "lucide-react";
 import z from "zod";
-import { useApiMutation } from "@/hooks/api";
-
-import { BaseError } from "@backend/exceptions/base";
+import { FormField } from "./form-field";
+import { toast } from "./ui/toast";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const login = useApiMutation<
-    z.infer<typeof loginSchema.json>,
+    z.infer<typeof loginSchema>,
     {
       validLogin: {
         username: string;
@@ -37,7 +33,7 @@ export function LoginForm({
     }
   >("/auth/login", "POST", { fetcher: { credentials: "include" } });
 
-  const defaultLoginValues: z.infer<typeof loginSchema.json> = {
+  const defaultLoginValues: z.infer<typeof loginSchema> = {
     usernameOrEmail: "",
     password: "",
     deviceId: "web-client",
@@ -46,7 +42,7 @@ export function LoginForm({
   const form = useForm({
     defaultValues: defaultLoginValues,
     validators: {
-      onChange: loginSchema.json,
+      onChange: loginSchema,
     },
     onSubmit: async (values) => {
       try {
@@ -57,28 +53,22 @@ export function LoginForm({
 
         console.log("Login successful:", validLogin);
 
-        toast("Login successful", {
-          description: (
-            <div className="flex flex-col">
-              <div>Username: {validLogin.username}</div>
-              <div>Email: {validLogin.email}</div>
-            </div>
-          ),
-          closeButton: true,
-          icon: <CircleCheck />,
+        toast.add({
+          type: "success",
+          description: "Login successfully",
         });
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (error) {
         console.error("Registration error:", error);
-        toast("Registration failed", {
-          description: (error as BaseError)?.message || "An error occurred",
-          className: "!text-destructive",
-          descriptionClassName: "!text-destructive",
-          closeButton: true,
-          icon: <CircleX />,
-          duration: 7000,
-        });
+        // toast("Registration failed", {
+        //   description: (error as BaseError)?.message || "An error occurred",
+        //   className: "!text-destructive",
+        //   descriptionClassName: "!text-destructive",
+        //   closeButton: true,
+        //   icon: <CircleX />,
+        //   duration: 7000,
+        // });
       }
     },
   });
@@ -110,28 +100,26 @@ export function LoginForm({
                   Login with Google
                 </Button>
               </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
+              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                <span className="relative z-10 bg-card px-2 text-muted-foreground">
                   Or continue with
                 </span>
               </div>
               <div className="grid gap-1">
                 <div className="grid">
-                  <form.Field
-                    name="usernameOrEmail"
-                    children={(field) => (
+                  <form.Field name="usernameOrEmail">
+                    {(field) => (
                       <FormField
                         field={field}
                         label="Username or Email"
                         placeholder="user@example.com"
                       />
                     )}
-                  />
+                  </form.Field>
                 </div>
                 <div className="grid">
-                  <form.Field
-                    name="password"
-                    children={(field) => (
+                  <form.Field name="password">
+                    {(field) => (
                       <FormField
                         field={field}
                         label="Password"
@@ -141,9 +129,10 @@ export function LoginForm({
                             href="#"
                             className="ml-auto text-sm underline-offset-4 hover:underline"
                             onClick={() => {
-                              toast(
-                                "Forgot password functionality is not implemented yet.",
-                              );
+                              toast.add({
+                                description:
+                                  "Forgot password functionality is not implemented yet.",
+                              });
                             }}
                           >
                             Forgot your password?
@@ -151,15 +140,16 @@ export function LoginForm({
                         }
                       />
                     )}
-                  />
+                  </form.Field>
                 </div>
                 <form.Subscribe
                   selector={(state) => [state.canSubmit, state.isSubmitting]}
-                  children={([canSubmit, isSubmitting]) => (
+                >
+                  {([canSubmit, isSubmitting]) => (
                     <Button
                       type="submit"
                       disabled={!canSubmit}
-                      className="w-full font-semibold flex gap-1 items-center"
+                      className="flex w-full items-center gap-1 font-semibold"
                     >
                       {isSubmitting ? (
                         <LoaderCircle className="animate-spin" />
@@ -167,7 +157,7 @@ export function LoginForm({
                       Login
                     </Button>
                   )}
-                />
+                </form.Subscribe>
               </div>
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
@@ -179,7 +169,7 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+      <div className="text-center text-xs text-balance text-muted-foreground *:[a]:underline *:[a]:underline-offset-4 *:[a]:hover:text-primary">
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </div>

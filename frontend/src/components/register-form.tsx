@@ -1,3 +1,4 @@
+import { registerSchema } from "#/validation-schemas/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,18 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { Link, useNavigate } from "@tanstack/react-router";
-
-import { useForm } from "@tanstack/react-form";
-import { FormField } from "./form-field";
-
-import { registerSchema } from "@backend/validation-schemas/auth";
-import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
-
-import z from "zod";
-import { toast } from "sonner";
 import { useApiMutation } from "@/hooks/api";
+import { cn } from "@/lib/utils";
+import { useForm } from "@tanstack/react-form";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LoaderCircle } from "lucide-react";
+import z from "zod";
+import { FormField } from "./form-field";
+import { toast } from "./ui/toast";
 
 export function RegisterForm({
   className,
@@ -26,7 +23,7 @@ export function RegisterForm({
   const navigation = useNavigate();
 
   const register = useApiMutation<
-    z.infer<typeof registerSchema.json>,
+    z.infer<typeof registerSchema>,
     {
       account: {
         email: string;
@@ -36,7 +33,7 @@ export function RegisterForm({
     }
   >("/auth/register", "POST");
 
-  const defaultRegisterValues: z.infer<typeof registerSchema.json> = {
+  const defaultRegisterValues: z.infer<typeof registerSchema> = {
     username: "",
     email: "",
     password: "",
@@ -45,37 +42,29 @@ export function RegisterForm({
   const form = useForm({
     defaultValues: defaultRegisterValues,
     validators: {
-      onChange: registerSchema.json,
+      onChange: registerSchema,
     },
     onSubmit: async (values) => {
       try {
-        const { account } = await register.mutateAsync(values.value);
+        await register.mutateAsync(values.value);
 
-        toast("Registration successful", {
-          description: (
-            <div className="flex flex-col">
-              <div>Username: {account.username}</div>
-              <div>Email: {account.email}</div>
-              <div>Timestamp: {new Date(account.timestamp).toString()}</div>
-            </div>
-          ),
-          closeButton: true,
-          icon: <CircleCheck />,
+        toast.add({
+          description: "Registration successfuf",
         });
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
         navigation({ to: "/login" });
-      } catch (error: any) {
+      } catch (error) {
         console.error("Registration error:", error);
-        toast("Registration failed", {
-          description: error?.message || "An error occurred",
-          className: "!text-destructive",
-          descriptionClassName: "!text-destructive",
-          closeButton: true,
-          icon: <CircleX />,
-          duration: 7000,
-        });
+        // toast("Registration failed", {
+        //   description: error?.message || "An error occurred",
+        //   className: "!text-destructive",
+        //   descriptionClassName: "!text-destructive",
+        //   closeButton: true,
+        //   icon: <CircleX />,
+        //   duration: 7000,
+        // });
       }
     },
   });
@@ -107,28 +96,26 @@ export function RegisterForm({
                   Register with Google
                 </Button>
               </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
+              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                <span className="relative z-10 bg-card px-2 text-muted-foreground">
                   Or regsiter with
                 </span>
               </div>
               <div className="grid gap-1">
                 <div className="grid">
-                  <form.Field
-                    name="username"
-                    children={(field) => (
+                  <form.Field name="username">
+                    {(field) => (
                       <FormField
                         field={field}
                         label="Username"
                         placeholder="username"
                       />
                     )}
-                  />
+                  </form.Field>
                 </div>
                 <div className="grid">
-                  <form.Field
-                    name="email"
-                    children={(field) => (
+                  <form.Field name="email">
+                    {(field) => (
                       <FormField
                         field={field}
                         label="Email"
@@ -136,27 +123,27 @@ export function RegisterForm({
                         placeholder="user@example.com"
                       />
                     )}
-                  />
+                  </form.Field>
                 </div>
                 <div className="grid">
-                  <form.Field
-                    name="password"
-                    children={(field) => (
+                  <form.Field name="password">
+                    {(field) => (
                       <FormField
                         field={field}
                         label="Password"
                         inputType="password"
                       />
                     )}
-                  />
+                  </form.Field>
                 </div>
                 <form.Subscribe
                   selector={(state) => [state.canSubmit, state.isSubmitting]}
-                  children={([canSubmit, isSubmitting]) => (
+                >
+                  {([canSubmit, isSubmitting]) => (
                     <Button
                       type="submit"
                       disabled={!canSubmit}
-                      className="w-full font-semibold flex gap-1 items-center"
+                      className="flex w-full items-center gap-1 font-semibold"
                     >
                       {isSubmitting ? (
                         <LoaderCircle className="animate-spin" />
@@ -164,7 +151,7 @@ export function RegisterForm({
                       Register
                     </Button>
                   )}
-                />
+                </form.Subscribe>
               </div>
               <div className="text-center text-sm">
                 Already have an account?{" "}
@@ -176,7 +163,7 @@ export function RegisterForm({
           </form>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+      <div className="text-center text-xs text-balance text-muted-foreground *:[a]:underline *:[a]:underline-offset-4 *:[a]:hover:text-primary">
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </div>

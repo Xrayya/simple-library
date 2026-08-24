@@ -1,6 +1,6 @@
-import { and, eq, getTableColumns } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import db from "../db/db";
-import { books, borrowLogs, categories } from "../db/schema";
+import { borrowLogs } from "../db/schema";
 import { UnauthorizedError } from "../exceptions/auth";
 
 type ReturnedBorrowingType = {
@@ -32,23 +32,81 @@ type ReturnedBookWithCategoryNameType = {
   updatedAt: Date | null;
 };
 
+function transformQueryResult(
+  queryResult: {
+    book: {
+      author: string;
+      availableCopies: number;
+      category: {
+        name: string;
+      };
+      categoryId: string;
+      coverUrl: string | null;
+      createdAt: Date;
+      description: string | null;
+      edition: number | null;
+      id: string;
+      publisher: string | null;
+      title: string;
+      totalCopies: number;
+      updatedAt: Date | null;
+      year: number | null;
+    };
+    bookId: string;
+    borrowedAt: Date;
+    createdAt: Date;
+    dueAt: Date;
+    id: string;
+    returnedAt: Date | null;
+    status: "borrowed" | "canceled" | "returned";
+    updatedAt: Date | null;
+    userId: string;
+  }[],
+): {
+  borrowingInfo: ReturnedBorrowingType;
+  bookInfo: ReturnedBookWithCategoryNameType;
+}[] {
+  return queryResult.map(
+    ({
+      book: {
+        category: { name: categoryName },
+        ...bookRest
+      },
+      ...borrowingRest
+    }) => ({
+      borrowingInfo: borrowingRest,
+      bookInfo: {
+        ...bookRest,
+        categoryName,
+      },
+    }),
+  );
+}
+
 export async function getUserBorrowing({ userId }: { userId: string }): Promise<
   {
     borrowingInfo: ReturnedBorrowingType;
     bookInfo: ReturnedBookWithCategoryNameType;
   }[]
 > {
-  const result = await db()
-    .select({
-      borrowingInfo: getTableColumns(borrowLogs),
-      bookInfo: { ...getTableColumns(books), categoryName: categories.name },
-    })
-    .from(borrowLogs)
-    .innerJoin(books, eq(borrowLogs.bookId, books.id))
-    .innerJoin(categories, eq(books.categoryId, categories.id))
-    .where(eq(borrowLogs.userId, userId));
+  const result = await db().query.borrowLogs.findMany({
+    where: {
+      userId: { eq: userId },
+    },
+    with: {
+      book: {
+        with: {
+          category: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-  return result;
+  return transformQueryResult(result);
 }
 
 export async function getBorrowings(): Promise<
@@ -57,16 +115,21 @@ export async function getBorrowings(): Promise<
     bookInfo: ReturnedBookWithCategoryNameType;
   }[]
 > {
-  const result = await db()
-    .select({
-      borrowingInfo: getTableColumns(borrowLogs),
-      bookInfo: { ...getTableColumns(books), categoryName: categories.name },
-    })
-    .from(borrowLogs)
-    .innerJoin(books, eq(borrowLogs.bookId, books.id))
-    .innerJoin(categories, eq(books.categoryId, categories.id));
+  const result = await db().query.borrowLogs.findMany({
+    with: {
+      book: {
+        with: {
+          category: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
-  return result;
+  return transformQueryResult(result);
 }
 
 export async function addBorrowing({

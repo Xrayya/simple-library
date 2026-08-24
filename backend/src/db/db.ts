@@ -1,9 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { relations } from "./relations";
 
 function db() {
   const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-  return drizzle({ client });
+  return drizzle({ client, relations });
 }
 
 // async function pingDB() {

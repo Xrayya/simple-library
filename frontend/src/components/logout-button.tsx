@@ -1,20 +1,15 @@
+import { useApiMutation } from "@/hooks/api";
+import { cn } from "@/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
-import { toast } from "sonner";
+import { LoaderCircle } from "lucide-react";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
-import { useApiMutation } from "@/hooks/api";
+import { toast } from "./ui/toast";
 
 export function LogoutButton({
   className,
-  onSuccess,
-  onError,
   ...props
-}: React.ComponentProps<"button"> & {
-  onSuccess?: () => void;
-  onError?: (error: any) => void;
-}) {
+}: React.ComponentProps<"button"> & {}) {
   const navigation = useNavigate();
 
   const logout = useApiMutation<void, any>(
@@ -30,26 +25,24 @@ export function LogoutButton({
       try {
         await logout.mutateAsync();
 
-        toast("Logout successful", {
-          closeButton: true,
-          icon: <CircleCheck />,
+        toast.add({
+          type: "success",
+          description: "Logout successfully",
         });
 
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // onSuccess?.();
         navigation({ to: "/login" });
-      } catch (error: any) {
+      } catch (error) {
         console.error("Logout error:", error);
-        // onError?.(error);
-        toast("Logout failed", {
-          description: error?.message || "An error occurred",
-          className: "!text-destructive",
-          descriptionClassName: "!text-destructive",
-          closeButton: true,
-          icon: <CircleX />,
-          duration: 7000,
-        });
+        // toast("Logout failed", {
+        //   description: error?.message || "An error occurred",
+        //   className: "!text-destructive",
+        //   descriptionClassName: "!text-destructive",
+        //   closeButton: true,
+        //   icon: <CircleX />,
+        //   duration: 7000,
+        // });
       }
     },
   });
@@ -64,7 +57,8 @@ export function LogoutButton({
     >
       <form.Subscribe
         selector={(state) => [state.canSubmit, state.isSubmitting]}
-        children={([canSubmit, isSubmitting]) => (
+      >
+        {([canSubmit, isSubmitting]) => (
           <Button
             type="submit"
             disabled={!canSubmit}
@@ -75,7 +69,7 @@ export function LogoutButton({
             Logout
           </Button>
         )}
-      />
+      </form.Subscribe>
     </form>
   );
 }

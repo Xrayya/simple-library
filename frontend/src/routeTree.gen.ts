@@ -9,22 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AuthProtectedRouteImport } from './routes/_auth-protected'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthProtectedRouteImport } from './routes/_auth-protected'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as UtilsCheckCookieRouteImport } from './routes/_utils/check-cookie'
 import { Route as AuthProtectedBooksIndexRouteImport } from './routes/_auth-protected/books/index'
 
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const AuthProtectedRoute = AuthProtectedRouteImport.update({
+  id: '/_auth-protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -32,13 +31,14 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthProtectedRoute = AuthProtectedRouteImport.update({
-  id: '/_auth-protected',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UtilsCheckCookieRoute = UtilsCheckCookieRouteImport.update({
@@ -58,7 +58,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/check-cookie': typeof UtilsCheckCookieRoute
-  '/books': typeof AuthProtectedBooksIndexRoute
+  '/books/': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -81,12 +81,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/about'
-    | '/login'
-    | '/register'
-    | '/check-cookie'
-    | '/books'
+    '/' | '/about' | '/login' | '/register' | '/check-cookie' | '/books/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/about' | '/login' | '/register' | '/check-cookie' | '/books'
   id:
@@ -111,18 +106,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/_auth-protected': {
+      id: '/_auth-protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -132,18 +127,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth-protected': {
-      id: '/_auth-protected'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthProtectedRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_utils/check-cookie': {
@@ -156,7 +151,7 @@ declare module '@tanstack/react-router' {
     '/_auth-protected/books/': {
       id: '/_auth-protected/books/'
       path: '/books'
-      fullPath: '/books'
+      fullPath: '/books/'
       preLoaderRoute: typeof AuthProtectedBooksIndexRouteImport
       parentRoute: typeof AuthProtectedRoute
     }

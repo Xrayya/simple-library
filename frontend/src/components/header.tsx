@@ -2,11 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { ThemeToggle } from "./theme-toggle";
 import { LogoutButton } from "./logout-button";
 
-export default function Header() {
+export function Header() {
   return (
-    <header className="p-2 flex gap-2 bg-white text-black justify-between">
+    <header className="flex justify-between gap-2 bg-white p-2 text-black">
       <nav className="flex flex-row">
-        <div className="px-2 font-bold flex gap-2">
+        <div className="flex gap-2 px-2 font-bold">
           <Link to="/">Home</Link>
           <Link to="/about">About</Link>
           <Link to="/login">Login</Link>

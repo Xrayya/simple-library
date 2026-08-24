@@ -1,13 +1,17 @@
 {
-  "projectName": "frontend",
+  "projectName": "frontend-new",
   "mode": "file-router",
   "typescript": true,
-  "tailwind": true,
   "packageManager": "bun",
-  "git": true,
+  "includeExamples": false,
+  "tailwind": true,
+  "projectPreset": "default",
+  "addOnOptions": {},
+  "git": false,
+  "install": true,
+  "intent": true,
+  "routerOnly": true,
   "version": 1,
-  "framework": "react-cra",
-  "chosenAddOns": [
-    "shadcn"
-  ]
+  "framework": "react",
+  "chosenAddOns": []
 }

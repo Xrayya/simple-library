@@ -9,7 +9,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     refreshTokens: r.many.refreshTokens({
       from: r.users.id,
-      to: r.refreshTokens.userId,
+      to: r.refreshTokens.ownerId,
     }),
   },
   books: {
@@ -38,6 +38,13 @@ export const relations = defineRelations(schema, (r) => ({
     book: r.one.books({
       from: r.borrowLogs.bookId,
       to: r.books.id,
+      optional: false,
+    }),
+  },
+  refreshTokens: {
+    owner: r.one.users({
+      from: r.refreshTokens.ownerId,
+      to: r.users.id,
       optional: false,
     }),
   },

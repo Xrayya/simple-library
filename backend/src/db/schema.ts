@@ -87,7 +87,7 @@ export type BorrowLogType = typeof borrowLogs.$inferSelect;
 
 export const refreshTokens = pgTable(REFRESH_TOKEN_TABLE_NAME, {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
+  ownerId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: uuid("token").notNull().unique().defaultRandom(),

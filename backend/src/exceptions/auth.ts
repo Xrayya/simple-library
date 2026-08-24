@@ -10,22 +10,22 @@ export class EmailAlreadyExistsError extends BaseError {
   }
 }
 
-export class UserNotFoundError extends BaseError {
-  constructor(usernameOrEmail: string) {
-    super(
-      "UserNotFoundError",
-      `User with username or email '${usernameOrEmail}' not found.`,
-      404,
-    );
-  }
-}
-
 export class CredentialNotFoundError extends BaseError {
   constructor() {
     super(
       "CredentialNotFoundError",
       "Account with provided credentials is not found.",
       404,
+    );
+  }
+}
+
+export class GoogleAuthenticationError extends BaseError {
+  constructor() {
+    super(
+      "GoogleAuthenticationError",
+      "Failed to retrieve valid profile from Google",
+      400,
     );
   }
 }

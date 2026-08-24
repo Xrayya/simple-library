@@ -1,8 +1,8 @@
 import { createFactory } from "hono/factory";
-import type { ZodRawShape } from "zod";
 import { validator } from "hono/validator";
-import { BaseRequestSchema } from "../validation-schemas/base";
+import type { ZodRawShape } from "zod";
 import { InvalidRequestError } from "../exceptions/validation";
+import { BaseRequestSchema } from "../validation-schemas/base";
 
 const handlersFactory = createFactory();
 
@@ -35,7 +35,6 @@ export const validateRequest = <
       return result.data;
     }),
     validator("param", (value, _) => {
-
       const result = schema.param?.safeParse(value);
       if (!result?.success) {
         throw new InvalidRequestError(

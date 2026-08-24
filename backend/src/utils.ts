@@ -1,5 +1,4 @@
 import { compareSync, hashSync } from "bcrypt-ts";
-import { Context } from "hono";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { env, IS_PROD } from "./env";
 import { InvalidTokenError } from "./exceptions/auth";
@@ -43,12 +42,3 @@ export const jwt = {
     }
   },
 };
-
-export function detectBrowserClient(c: Context): boolean {
-  const userAgent = c.req.header("user-agent") || "";
-  const origin = c.req.header("origin");
-  const secFetch = c.req.header("sec-fetch-site");
-
-  // Simple detection
-  return userAgent.includes("Mozilla") || !!origin || !!secFetch;
-}

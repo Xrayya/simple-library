@@ -2,9 +2,9 @@ import { afterAll, describe, test, expect, setDefaultTimeout } from "bun:test";
 import { refreshTokens, users } from "../src/db/schema";
 import { db } from "../src/db/db";
 
-setDefaultTimeout(50000);
+setDefaultTimeout(20000);
 
-const baseUrl = "http://localhost:3000/api/v1/auth";
+const baseUrl = "http://localhost:3000/auth";
 
 const mockUser = {
   username: "testuser",
@@ -36,8 +36,8 @@ describe("Auth", () => {
 
     expect(response.status).toBe(201);
     expect(data.account).toBeObject();
-    expect(data.account.username).toBe("testuser");
-    expect(data.account.email).toBe("testuser@example.com");
+    expect(data.account.username).toBe(mockUser.username);
+    expect(data.account.email).toBe(mockUser.email);
     expect(data.account.timestamp).toBeString();
   });
 
@@ -65,10 +65,10 @@ describe("Auth", () => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         usernameOrEmail: mockUser.username,
         password: mockUser.password,
-        deviceId: "test-device-id",
       }),
     });
 
@@ -76,35 +76,47 @@ describe("Auth", () => {
 
     expect(response.status).toBe(200);
     expect(data.validLogin).toBeObject();
-    expect(data.validLogin.username).toBe("testuser");
-    expect(data.validLogin.email).toBe("testuser@example.com");
+    expect(data.validLogin.username).toBe(mockUser.username);
+    expect(data.validLogin.email).toBe(mockUser.email);
     expect(data.validLogin.accessToken).toBeString();
-    expect(data.validLogin.refreshToken).toBeString();
+
+    const cookies = response.headers.getSetCookie();
+    const refreshTokenCookie = cookies.find((cookie) =>
+      cookie.includes("refreshToken"),
+    );
+
+    expect(refreshTokenCookie).toBeString();
+
+    const match = refreshTokenCookie!.match(/refreshToken=(?<token>[^;]+)/);
+    const token = match?.groups?.["token"];
+
+    expect(token).toBeString();
 
     accessToken = data.validLogin.accessToken;
-    refreshToken = data.validLogin.refreshToken;
+    refreshToken = token;
   });
 
-  test("access token should be valid within 5s after login", async () => {
-    expect(accessToken).toBeDefined();
-
-    // NOTE: set access token expire time to 5 second in util file for this testing
-    const response = await fetch(`http://localhost:3000/api/v1/books`, {
+  test("access token should be valid within 4s after login", async () => {
+    const response = await fetch(`${baseUrl}/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
     expect(response.status).toBe(200);
+
+    const data: any = await response.json();
+
+    expect(data.authInfo).toBeObject();
+    expect(data.authInfo.username).toBe(mockUser.username);
+    expect(data.authInfo.email).toBe(mockUser.email);
+    expect(data.authInfo.role).toBe("user");
   });
 
-  test("access token should be invalid 5s after login", async () => {
-    expect(accessToken).toBeDefined();
+  test("access token should be invalid past 4s after login", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 4010));
 
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-
-    // NOTE: set access token expire time to 5 second in util file for this testing
-    const response = await fetch(`http://localhost:3000/api/v1/books`, {
+    const response = await fetch(`${baseUrl}/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -114,16 +126,12 @@ describe("Auth", () => {
   });
 
   test("should perform token refresh correctly", async () => {
-    expect(refreshToken).toBeDefined();
-
     const response = await fetch(`${baseUrl}/refresh`, {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        Cookie: `refreshToken=${refreshToken}`,
       },
-      body: JSON.stringify({
-        refreshToken,
-      }),
     });
 
     const data: any = await response.json();
@@ -132,42 +140,58 @@ describe("Auth", () => {
     expect(data.accessToken).toBeString();
 
     accessToken = data.accessToken;
+  });
 
-    const response2 = await fetch(`http://localhost:3000/api/v1/books`, {
+  test("new access token should be valid within 4s after refresh", async () => {
+    const response = await fetch(`${baseUrl}/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
-    expect(response2.status).toBe(200);
+    expect(response.status).toBe(200);
+
+    const data: any = await response.json();
+
+    expect(data.authInfo).toBeObject();
+    expect(data.authInfo.username).toBe(mockUser.username);
+    expect(data.authInfo.email).toBe(mockUser.email);
+    expect(data.authInfo.role).toBe("user");
+  });
+
+  test("new access token should be invalid past 4s after refresh", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 4010));
+
+    const response = await fetch(`${baseUrl}/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    expect(response.status).toBe(401);
   });
 
   test("should perform logout correctly", async () => {
-    expect(refreshToken).toBeDefined();
-    expect(accessToken).toBeDefined();
-
     const response = await fetch(`${baseUrl}/logout`, {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        Cookie: `refreshToken=${refreshToken}`,
       },
-      body: JSON.stringify({
-        refreshToken,
-      }),
     });
 
     expect(response.status).toBe(204);
 
-    const response2 = await fetch(`${baseUrl}/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refreshToken,
-      }),
-    });
+    const cookies = response.headers.getSetCookie();
+    const refreshTokenCookie = cookies.find((cookie) =>
+      cookie.includes("refreshToken"),
+    );
 
-    expect(response2.status).toBe(401);
+    expect(refreshTokenCookie).toBeString();
+
+    const match = refreshTokenCookie!.match(/refreshToken=(?<token>[^;]+)/);
+    const token = match?.groups?.["token"];
+
+    expect(token).toBeUndefined();
   });
 });

@@ -24,6 +24,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GalleryVerticalEnd, LoaderCircle } from "lucide-react";
 import type { z } from "zod";
 import { Route as registerRoute } from "./register";
+import { env } from "#/lib/env.ts";
+import {Route as aboutRoute} from "./about"
 
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
@@ -71,9 +73,9 @@ function RouteComponent() {
 
       setTimeout(() => {
         // TODO: navigate to home
-        // navigate({
-        //   to: homeRoute.to,
-        // });
+        navigate({
+          to: aboutRoute.to,
+        });
       }, 500);
     },
   });
@@ -91,9 +93,9 @@ function RouteComponent() {
     },
   });
 
-  // const handleGoogleLoginClick = () => {
-  //   window.location.href = `${env.VITE_BACKEND_ENDPOINT}${env.VITE_BACKEND_ROUTE_PREFIX}/auth/google`;
-  // };
+  const handleGoogleLoginClick = () => {
+    window.location.href = `${env.VITE_BACKEND_ENDPOINT}${env.VITE_BACKEND_ROUTE_PREFIX}/auth/google`;
+  };
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
@@ -129,7 +131,7 @@ function RouteComponent() {
                             variant="outline"
                             type="button"
                             disabled={isSubmitting}
-                          // onClick={handleGoogleLoginClick}
+                            onClick={handleGoogleLoginClick}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

@@ -1,23 +1,26 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { InvalidTokenError } from "../exceptions/auth";
+import { env, IS_PROD } from "../env";
+import {
+  GoogleAuthenticationError,
+  InvalidTokenError,
+} from "../exceptions/auth";
 import { validateJsonRequest } from "../middlewares/validation";
 import {
+    createGooglePreRegistrationTempToken,
   createToken,
   getAuthInfo,
+  googleCompleteRegister,
   login,
   logout,
   refreshAccessToken,
   register,
 } from "../services/auth";
-import { detectBrowserClient } from "../utils";
-import { loginSchema, registerSchema } from "../validation-schemas/auth";
+import { googleCompleteRegistrationSchema, loginSchema, registerSchema } from "../validation-schemas/auth";
+import { googleAuth } from "@hono/oauth-providers/google";
+import { findByEmail } from "../services/users";
 
-export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
-  .use(async (c, next) => {
-    c.set("isBrowserClient", detectBrowserClient(c));
-    await next();
-  })
+export const authRoute = new Hono()
   .post("/register", ...validateJsonRequest(registerSchema), async (c) => {
     const payload = c.req.valid("json");
     const newUser = await register(payload);
@@ -25,54 +28,99 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     return c.json({ account: newUser }, 201);
   })
   .post("/login", ...validateJsonRequest(loginSchema), async (c) => {
-    const { usernameOrEmail, password, deviceId } = c.req.valid("json");
-    const validUser = await login({ usernameOrEmail, password });
+    const payload = c.req.valid("json");
+    const validUser = await login(payload);
 
     const { accessToken, refreshToken } = await createToken({
       ...validUser,
       userEmail: validUser.email,
-      userRole: validUser.role,
-      deviceId,
       expiresIn: 60 * 60 * 24 * 30, // 30 days for refresh token
     });
 
-    if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", accessToken, {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 60 * 60 * 2, // 2 hours
-        path: "/",
-      });
-
-      setCookie(c, "refreshToken", refreshToken, {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        path: "/",
-      });
-    }
+    setCookie(c, "refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: "Lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/",
+    });
 
     return c.json(
       {
         validLogin: {
           username: validUser.username,
           email: validUser.email,
-          role: validUser.role,
-          accessToken: c.get("isBrowserClient") ? undefined : accessToken,
-          refreshToken: c.get("isBrowserClient") ? undefined : refreshToken,
+          accessToken,
         },
       },
       200,
     );
   })
+  .get(
+    "/google",
+    googleAuth({
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      scope: ["openid", "email"],
+      redirect_uri: env.GOOGLE_REDIRECT_URI,
+    }),
+    async (c) => {
+      const googleUser = c.get("user-google");
+
+      if (!googleUser?.id || !googleUser.email) {
+        throw new GoogleAuthenticationError();
+      }
+
+      const existingUser = await findByEmail({ email: googleUser.email });
+
+      if (existingUser) {
+        const { refreshToken } = await createToken({
+          userId: existingUser.id,
+          username: existingUser.username,
+          userEmail: existingUser.email,
+          role: existingUser.role,
+          expiresIn: 60 * 60 * 24 * 30, // 30 days for refresh token
+        });
+
+        setCookie(c, "refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: IS_PROD,
+          sameSite: "Lax",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: "/",
+        });
+
+        return c.redirect(`${env.CLIENT_ORIGIN}/successful-login`);
+      }
+
+      const tempToken = await createGooglePreRegistrationTempToken({
+        googleId: googleUser.id,
+        email: googleUser.email,
+      });
+
+      setCookie(c, "tempRegistrationToken", tempToken, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 900, // 15 minutes
+      });
+
+      return c.redirect(`${env.CLIENT_ORIGIN}/complete-registration`);
+    },
+  )
+  .post(
+    "/google/complete-registration",
+    ...validateJsonRequest(googleCompleteRegistrationSchema),
+    async (c) => {
+      const token = c.req.valid("cookie").tempRegistrationToken;
+      const payload = c.req.valid("json");
+
+      const newUser = await googleCompleteRegister({ token, ...payload });
+
+      return c.json({ account: newUser });
+    },
+  )
   .post("/refresh", async (c) => {
-    const refreshToken = (
-      c.get("isBrowserClient")
-        ? getCookie(c, "refreshToken")
-        : (await c.req.json()).refreshToken
-    ) as string;
+    const refreshToken = getCookie(c, "refreshToken");
 
     if (!refreshToken) {
       throw new InvalidTokenError();
@@ -80,29 +128,10 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
 
     const newAccessToken = await refreshAccessToken({ refreshToken });
 
-    if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", newAccessToken, {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 60 * 60 * 2, // 2 hours
-        path: "/",
-      });
-    }
-
-    if (!c.get("isBrowserClient")) {
-      return c.json({ accessToken: newAccessToken }, 200);
-    }
-
-    c.status(204);
-    return c.body(null);
+    return c.json({ accessToken: newAccessToken }, 200);
   })
   .post("/logout", async (c) => {
-    const refreshToken = (
-      c.get("isBrowserClient")
-        ? getCookie(c, "refreshToken")
-        : (await c.req.json()).refreshToken
-    ) as string;
+    const refreshToken = getCookie(c, "refreshToken");
 
     if (!refreshToken) {
       throw new InvalidTokenError();
@@ -110,31 +139,19 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
 
     await logout({ refreshToken });
 
-    if (c.get("isBrowserClient")) {
-      setCookie(c, "accessToken", "", {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 0,
-        path: "/",
-      });
-
-      setCookie(c, "refreshToken", "", {
-        httpOnly: true,
-        // secure: true,
-        sameSite: "Lax",
-        maxAge: 0,
-        path: "/",
-      });
-    }
+    setCookie(c, "refreshToken", "", {
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: "Lax",
+      maxAge: 0,
+      path: "/",
+    });
 
     c.status(204);
     return c.body(null);
   })
   .get("/me", async (c) => {
-    const accessToken = c.get("isBrowserClient")
-      ? getCookie(c, "accessToken")
-      : c.req.header("Authorization")?.split(" ")[1];
+    const accessToken = c.req.header("Authorization")?.split(" ")[1];
 
     if (!accessToken) {
       throw new InvalidTokenError();
@@ -143,4 +160,3 @@ export const authRoute = new Hono<{ Variables: { isBrowserClient: boolean } }>()
     const authInfo = await getAuthInfo({ accessToken });
     return c.json({ authInfo }, 200);
   });
-

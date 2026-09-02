@@ -3,3 +3,6 @@ node_modules/
 
 #env
 .env
+
+#secrets
+client_secret*.json

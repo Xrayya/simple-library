@@ -31,6 +31,7 @@ export const users = pgTable(USER_TABLE_NAME, {
   username: varchar("username", { length: 50 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  googleId: varchar("google_id", { length: 255 }).unique(),
   role: userRoleEnum("role").notNull().default("user"),
   ...timestamps,
 });
@@ -87,10 +88,9 @@ export type BorrowLogType = typeof borrowLogs.$inferSelect;
 
 export const refreshTokens = pgTable(REFRESH_TOKEN_TABLE_NAME, {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
+  ownerId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: uuid("token").notNull().unique().defaultRandom(),
-  deviceId: text("device_id").notNull(),
   expiredAt: timestamp("expired_at").notNull(),
 });

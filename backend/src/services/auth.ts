@@ -1,8 +1,8 @@
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { DrizzleQueryError } from "drizzle-orm/errors";
-import { JWTPayload } from "jose";
+import type { JWTPayload } from "jose";
 import postgres from "postgres";
-import db from "../db/db";
+import { db } from "../db/db";
 import { refreshTokens, users } from "../db/schema";
 import {
   CredentialNotFoundError,
@@ -11,6 +11,7 @@ import {
 } from "../exceptions/auth";
 import { UnknownError } from "../exceptions/base";
 import { hasher, jwt } from "../utils";
+import { tempRegistrationTokenSchema } from "../validation-schemas/auth";
 
 export async function register({
   email,
@@ -22,22 +23,20 @@ export async function register({
   password: string;
 }): Promise<{ email: string; username: string; timestamp: Date }> {
   try {
-    const result = (
-      await db()
-        .insert(users)
-        .values({
-          email,
-          username,
-          passwordHash: hasher.encrypt(password),
-        })
-        .returning({
-          email: users.email,
-          username: users.username,
-          timestamp: users.createdAt,
-        })
-    )[0];
+    const result = await db
+      .insert(users)
+      .values({
+        email,
+        username,
+        passwordHash: hasher.encrypt(password),
+      })
+      .returning({
+        email: users.email,
+        username: users.username,
+        timestamp: users.createdAt,
+      });
 
-    return result;
+    return result[0]!;
   } catch (error) {
     if (!(error instanceof DrizzleQueryError)) {
       throw new UnknownError(
@@ -64,76 +63,141 @@ export async function register({
   }
 }
 
+export async function googleCompleteRegister({
+  token,
+  username,
+  password,
+}: {
+  token: string;
+  username: string;
+  password: string;
+}): Promise<{
+  email: string;
+  username: string;
+  timestamp: Date;
+}> {
+  const payload = await jwt.verify(token);
+  const parsedPayload = tempRegistrationTokenSchema.safeParse(payload);
+
+  if (!parsedPayload.success) {
+    throw new InvalidTokenError();
+  }
+
+  try {
+    const result = await db
+      .insert(users)
+      .values({
+        email: parsedPayload.data.email,
+        username,
+        passwordHash: hasher.encrypt(password),
+        googleId: parsedPayload.data.googleId,
+      })
+      .returning({
+        email: users.email,
+        username: users.username,
+        timestamp: users.createdAt,
+      });
+
+    return result[0]!;
+  } catch (error) {
+    if (!(error instanceof DrizzleQueryError)) {
+      throw new UnknownError(
+        "An unexpected error occurred during registration.",
+      );
+    }
+
+    if (!(error.cause instanceof postgres.PostgresError)) {
+      throw new UnknownError(
+        "An unexpected error occurred during registration.",
+      );
+    }
+
+    if (
+      error.cause.code === "23505" &&
+      error.cause.constraint_name?.includes("email")
+    ) {
+      throw new EmailAlreadyExistsError(parsedPayload.data.email);
+    } else {
+      throw new UnknownError(
+        "An unexpected error occurred during registration.",
+      );
+    }
+  }
+}
+
 export async function login({
   usernameOrEmail,
   password,
 }: {
   usernameOrEmail: string;
   password: string;
-}): Promise<{ userId: string; username: string; email: string; role: string }> {
-  const user = await db()
-    .select()
-    .from(users)
-    .where(
-      or(eq(users.username, usernameOrEmail), eq(users.email, usernameOrEmail)),
-    )
-    .limit(1);
+}): Promise<{
+  userId: string;
+  username: string;
+  email: string;
+  role: "admin" | "user";
+}> {
+  const user = await db.query.users.findFirst({
+    where: {
+      OR: [
+        { username: { eq: usernameOrEmail } },
+        { email: { eq: usernameOrEmail } },
+      ],
+    },
+  });
 
-  if (user.length === 0) {
+  if (!user) {
     throw new CredentialNotFoundError();
   }
 
-  const isPasswordValid = hasher.verify(user[0].passwordHash, password);
+  const isPasswordValid = hasher.verify(user.passwordHash, password);
+
   if (!isPasswordValid) {
     throw new CredentialNotFoundError();
   }
 
   return {
-    userId: user[0].id,
-    username: user[0].username,
-    email: user[0].email,
-    role: user[0].role,
+    userId: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
   };
 }
 
 export async function createToken({
   userId,
   username,
+  role,
   userEmail,
-  userRole,
-  deviceId,
   expiresIn,
 }: {
   userId: string;
   username: string;
+  role: "admin" | "user";
   userEmail: string;
-  userRole: string;
-  deviceId: string;
   expiresIn: number;
 }): Promise<{ refreshToken: string; accessToken: string }> {
-  const { refreshToken } = (
-    await db()
-      .insert(refreshTokens)
-      .values({
-        userId: userId,
-        deviceId,
-        expiredAt: new Date(Date.now() + expiresIn * 1000),
-      })
-      .returning({
-        refreshToken: refreshTokens.token,
-      })
-  )[0];
+  // WARN: Potential exception
+  const result = await db
+    .insert(refreshTokens)
+    .values({
+      ownerId: userId,
+      expiredAt: new Date(Date.now() + expiresIn * 1000),
+    })
+    .returning({
+      refreshToken: refreshTokens.token,
+    });
 
   const payload = {
     userId,
     username,
     email: userEmail,
-    role: userRole,
+    role,
   };
 
   const accessToken = await jwt.sign(payload);
 
-  return { refreshToken, accessToken };
+  return { refreshToken: result[0]!.refreshToken, accessToken };
 }
 
 export async function refreshAccessToken({
@@ -141,25 +205,32 @@ export async function refreshAccessToken({
 }: {
   refreshToken: string;
 }): Promise<string> {
-  const user = await db()
-    .select({
-      userId: users.id,
-      username: users.username,
-      email: users.email,
-    })
-    .from(refreshTokens)
-    .innerJoin(users, eq(refreshTokens.userId, users.id))
-    .where(eq(refreshTokens.token, refreshToken))
-    .limit(1);
+  const result = await db.query.refreshTokens.findFirst({
+    columns: {},
+    where: {
+      token: { eq: refreshToken },
+    },
+    with: {
+      owner: {
+        columns: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  });
 
-  if (user.length === 0) {
+  if (!result) {
     throw new InvalidTokenError();
   }
 
   const payload = {
-    userId: user[0].userId,
-    username: user[0].username,
-    email: user[0].email,
+    userId: result.owner.id,
+    username: result.owner.username,
+    email: result.owner.email,
+    role: result.owner.role,
   };
 
   const accessToken = await jwt.sign(payload);
@@ -167,12 +238,32 @@ export async function refreshAccessToken({
   return accessToken;
 }
 
+export async function createGooglePreRegistrationTempToken({
+  googleId,
+  email,
+}: {
+  googleId: string;
+  email: string;
+}): Promise<string> {
+  const token = await jwt.sign(
+    {
+      googleId,
+      email,
+    },
+    {
+      expirationTime: "15m",
+    },
+  );
+
+  return token;
+}
+
 export async function logout({
   refreshToken,
 }: {
   refreshToken: string;
 }): Promise<void> {
-  const result = await db()
+  const result = await db
     .delete(refreshTokens)
     .where(eq(refreshTokens.token, refreshToken))
     .returning({
@@ -188,31 +279,32 @@ export async function getAuthInfo({
   accessToken,
 }: {
   accessToken: string;
-}): Promise<{ username: string; email: string; role: string }> {
+}): Promise<{ username: string; email: string; role: "admin" | "user" }> {
   const { userId } = (await jwt.verify(accessToken)) as JWTPayload & {
     userId: string;
     username: string;
     email: string;
-    role: string;
+    role: "admin" | "user";
   };
 
-  const user = await db()
-    .select({
-      username: users.username,
-      email: users.email,
-      role: users.role,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const user = await db.query.users.findFirst({
+    columns: {
+      username: true,
+      email: true,
+      role: true,
+    },
+    where: {
+      id: { eq: userId },
+    },
+  });
 
-  if (user.length === 0) {
+  if (!user) {
     throw new InvalidTokenError();
   }
 
   return {
-    username: user[0].username,
-    email: user[0].email,
-    role: user[0].role,
+    username: user.username,
+    email: user.email,
+    role: user.role,
   };
 }

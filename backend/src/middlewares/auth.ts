@@ -1,8 +1,7 @@
-import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
-import { JWTPayload } from "jose";
+import type { JWTPayload } from "jose";
 import { AuthenticationRequiredError } from "../exceptions/auth";
-import { detectBrowserClient, jwt } from "../utils";
+import { jwt } from "../utils";
 
 export const authMiddleware = createMiddleware<{
   Variables: {
@@ -14,15 +13,13 @@ export const authMiddleware = createMiddleware<{
     };
   };
 }>(async (c, next) => {
-  const token = detectBrowserClient(c)
-    ? getCookie(c, "accessToken")
-    : c.req.header("Authorization")?.split(" ")[1];
+  const token = c.req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
     throw new AuthenticationRequiredError();
   }
 
-  const { payload } = await jwt.verify(token);
+  const payload = await jwt.verify(token);
 
   c.set(
     "user",
@@ -35,3 +32,4 @@ export const authMiddleware = createMiddleware<{
   );
   await next();
 });
+

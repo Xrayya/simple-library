@@ -9,23 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthProtectedRouteImport } from './routes/_auth-protected'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as CompleteRegistrationRouteImport } from './routes/complete-registration'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as SuccessfulLoginRouteImport } from './routes/successful-login'
+import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as UtilsCheckCookieRouteImport } from './routes/_utils/check-cookie'
-import { Route as AuthProtectedBooksIndexRouteImport } from './routes/_auth-protected/books/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthProtectedRoute = AuthProtectedRouteImport.update({
-  id: '/_auth-protected',
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -53,48 +47,45 @@ const SuccessfulLoginRoute = SuccessfulLoginRouteImport.update({
   path: '/successful-login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthRoute,
+} as any)
 const UtilsCheckCookieRoute = UtilsCheckCookieRouteImport.update({
   id: '/_utils/check-cookie',
   path: '/check-cookie',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthProtectedBooksIndexRoute = AuthProtectedBooksIndexRouteImport.update({
-  id: '/books/',
-  path: '/books/',
-  getParentRoute: () => AuthProtectedRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthIndexRoute
   '/about': typeof AboutRoute
   '/complete-registration': typeof CompleteRegistrationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/successful-login': typeof SuccessfulLoginRoute
   '/check-cookie': typeof UtilsCheckCookieRoute
-  '/books/': typeof AuthProtectedBooksIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/complete-registration': typeof CompleteRegistrationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/successful-login': typeof SuccessfulLoginRoute
   '/check-cookie': typeof UtilsCheckCookieRoute
-  '/books': typeof AuthProtectedBooksIndexRoute
+  '/': typeof AuthIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_auth-protected': typeof AuthProtectedRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
   '/about': typeof AboutRoute
   '/complete-registration': typeof CompleteRegistrationRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/successful-login': typeof SuccessfulLoginRoute
   '/_utils/check-cookie': typeof UtilsCheckCookieRoute
-  '/_auth-protected/books/': typeof AuthProtectedBooksIndexRoute
+  '/_auth/': typeof AuthIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,33 +97,29 @@ export interface FileRouteTypes {
     | '/register'
     | '/successful-login'
     | '/check-cookie'
-    | '/books/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/about'
     | '/complete-registration'
     | '/login'
     | '/register'
     | '/successful-login'
     | '/check-cookie'
-    | '/books'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/_auth-protected'
+    | '/_auth'
     | '/about'
     | '/complete-registration'
     | '/login'
     | '/register'
     | '/successful-login'
     | '/_utils/check-cookie'
-    | '/_auth-protected/books/'
+    | '/_auth/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuthProtectedRoute: typeof AuthProtectedRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
   AboutRoute: typeof AboutRoute
   CompleteRegistrationRoute: typeof CompleteRegistrationRoute
   LoginRoute: typeof LoginRoute
@@ -143,18 +130,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth-protected': {
-      id: '/_auth-protected'
+    '/_auth': {
+      id: '/_auth'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthProtectedRouteImport
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -192,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuccessfulLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/': {
+      id: '/_auth/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_utils/check-cookie': {
       id: '/_utils/check-cookie'
       path: '/check-cookie'
@@ -199,31 +186,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UtilsCheckCookieRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth-protected/books/': {
-      id: '/_auth-protected/books/'
-      path: '/books'
-      fullPath: '/books/'
-      preLoaderRoute: typeof AuthProtectedBooksIndexRouteImport
-      parentRoute: typeof AuthProtectedRoute
-    }
   }
 }
 
-interface AuthProtectedRouteChildren {
-  AuthProtectedBooksIndexRoute: typeof AuthProtectedBooksIndexRoute
+interface AuthRouteChildren {
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
-const AuthProtectedRouteChildren: AuthProtectedRouteChildren = {
-  AuthProtectedBooksIndexRoute: AuthProtectedBooksIndexRoute,
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthIndexRoute: AuthIndexRoute,
 }
 
-const AuthProtectedRouteWithChildren = AuthProtectedRoute._addFileChildren(
-  AuthProtectedRouteChildren,
-)
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuthProtectedRoute: AuthProtectedRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
   AboutRoute: AboutRoute,
   CompleteRegistrationRoute: CompleteRegistrationRoute,
   LoginRoute: LoginRoute,

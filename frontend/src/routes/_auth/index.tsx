@@ -333,6 +333,18 @@ const features = tableFeatures({
 
 const columns: Array<ColumnDef<typeof features, Book>> = [
   {
+    accessorKey: "coverUrl",
+    header: "Cover",
+    cell: (info) => (
+      <img
+        src={info.getValue() as string}
+        alt={info.row.original.title}
+        className="h-16 w-12 rounded-md object-cover shadow-sm"
+      />
+    ),
+    enableSorting: false,
+  },
+  {
     accessorKey: "title",
     header: "Title",
   },

@@ -29,8 +29,16 @@ import {
   useTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { Fragment, useState } from "react";
 
 export const Route = createFileRoute("/_auth/")({
   component: RouteComponent,
@@ -43,7 +51,7 @@ type Book = {
   year: number;
   edition: number;
   description: string;
-  categoryId: string;
+  categoryName: string;
   coverUrl: string;
   totalCopies: number;
   availableCopies: number;
@@ -58,7 +66,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "An in-depth guide to the architecture and principles underlying reliable, scalable, and maintainable systems.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     totalCopies: 10,
     availableCopies: 4,
@@ -71,7 +79,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "A handbook of agile software craftsmanship packed with practical examples and refactoring techniques.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1532012197267-da84d127e765",
     totalCopies: 8,
     availableCopies: 2,
@@ -84,7 +92,7 @@ export const mockBooks: Book[] = [
     edition: 2,
     description:
       "Your journey to mastery: practical advice on software development, career growth, and code architecture.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
     totalCopies: 6,
     availableCopies: 1,
@@ -97,7 +105,7 @@ export const mockBooks: Book[] = [
     edition: 2,
     description:
       "A comprehensive catalog of refactorings and code smells to transform legacy code into clean architecture.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e",
     totalCopies: 5,
     availableCopies: 5,
@@ -110,7 +118,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Set on the desert planet Arrakis, a masterwork of political intrigue, religion, and ecology.",
-    categoryId: "cat-sci-fi",
+    categoryName: "cat-sci-fi",
     coverUrl: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6",
     totalCopies: 12,
     availableCopies: 3,
@@ -123,7 +131,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "The seminal cyberpunk novel following Case, a washed-up computer hacker hired for a mysterious heist.",
-    categoryId: "cat-sci-fi",
+    categoryName: "cat-sci-fi",
     coverUrl: "https://images.unsplash.com/photo-1516979187457-637abb4f9353",
     totalCopies: 4,
     availableCopies: 0,
@@ -136,7 +144,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Psychohistorian Hari Seldon foresees the fall of the Galactic Empire and creates a foundation to save civilization.",
-    categoryId: "cat-sci-fi",
+    categoryName: "cat-sci-fi",
     coverUrl: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6",
     totalCopies: 7,
     availableCopies: 6,
@@ -149,7 +157,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "A narrative tracing how biology and history have defined us and enhanced our understanding of humanity.",
-    categoryId: "cat-history",
+    categoryName: "cat-history",
     coverUrl: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d",
     totalCopies: 15,
     availableCopies: 9,
@@ -162,7 +170,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "An easy and proven framework for improving your life through tiny daily behavior changes.",
-    categoryId: "cat-self-help",
+    categoryName: "cat-self-help",
     coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
     totalCopies: 20,
     availableCopies: 11,
@@ -175,7 +183,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Rules for focused success in a distracted world, prioritizing cognitive load for maximum performance.",
-    categoryId: "cat-self-help",
+    categoryName: "cat-self-help",
     coverUrl: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
     totalCopies: 9,
     availableCopies: 2,
@@ -188,7 +196,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Bilbo Baggins leaves his peaceful life in the Shire to embark on a quest to reclaim the Lonely Mountain.",
-    categoryId: "cat-fantasy",
+    categoryName: "cat-fantasy",
     coverUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475",
     totalCopies: 14,
     availableCopies: 8,
@@ -201,7 +209,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "The tale of Kvothe, a magically gifted young man who grows to become a notorious wizard.",
-    categoryId: "cat-fantasy",
+    categoryName: "cat-fantasy",
     coverUrl: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
     totalCopies: 5,
     availableCopies: 2,
@@ -214,7 +222,7 @@ export const mockBooks: Book[] = [
     edition: 2,
     description:
       "A foundational text on computer science principles using Scheme to demonstrate abstraction and programming paradigms.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
     totalCopies: 3,
     availableCopies: 1,
@@ -227,7 +235,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "A dystopian novel exploring total government surveillance, propaganda, and thought control under Big Brother.",
-    categoryId: "cat-fiction",
+    categoryName: "cat-fiction",
     coverUrl: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a",
     totalCopies: 11,
     availableCopies: 7,
@@ -240,7 +248,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "A novel about growth, racial injustice, and compassion in the American South seen through young Scout's eyes.",
-    categoryId: "cat-fiction",
+    categoryName: "cat-fiction",
     coverUrl: "https://images.unsplash.com/photo-1476275466078-4007374efbbe",
     totalCopies: 10,
     availableCopies: 5,
@@ -253,7 +261,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "An investigation into two modes of thought: fast, intuitive thinking vs. slow, deliberate logical reasoning.",
-    categoryId: "cat-psychology",
+    categoryName: "cat-psychology",
     coverUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66",
     totalCopies: 8,
     availableCopies: 3,
@@ -266,7 +274,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Uncovers the elegant, highly expressive features of JavaScript while avoiding its bad features.",
-    categoryId: "cat-tech",
+    categoryName: "cat-tech",
     coverUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
     totalCopies: 6,
     availableCopies: 6,
@@ -279,7 +287,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Timeless lessons on wealth, greed, and happiness exploring how people think about financial decisions.",
-    categoryId: "cat-finance",
+    categoryName: "cat-finance",
     coverUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44",
     totalCopies: 12,
     availableCopies: 10,
@@ -292,7 +300,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "Notes on startups, building the future, and how to create breakthrough innovations rather than incremental copies.",
-    categoryId: "cat-business",
+    categoryName: "cat-business",
     coverUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
     totalCopies: 7,
     availableCopies: 2,
@@ -305,7 +313,7 @@ export const mockBooks: Book[] = [
     edition: 1,
     description:
       "A study on why some companies make the leap to long-term greatness while others fail to sustain success.",
-    categoryId: "cat-business",
+    categoryName: "cat-business",
     coverUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
     totalCopies: 5,
     availableCopies: 0,
@@ -337,6 +345,10 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
     header: "Year",
   },
   {
+    accessorKey: "categoryName",
+    header: "Category Name",
+  },
+  {
     accessorKey: "edition",
     header: "Edition",
   },
@@ -352,6 +364,7 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
 
 export function BooksTable() {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5,
@@ -417,18 +430,127 @@ export function BooksTable() {
         <TableBody>
           {table.getRowModel().rows.length === 0 ? (
             <TableRow>
-              <TableCell className="h-24 text-center">No results.</TableCell>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
             </TableRow>
           ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getAllCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    <table.FlexRender cell={cell} />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            table.getRowModel().rows.map((row) => {
+              const isExpanded = expandedRowId === row.id;
+              return (
+                <Fragment key={row.id}>
+                  {!isExpanded ? (
+                    <TableRow
+                      className="cursor-pointer transition-colors hover:bg-muted/50"
+                      onClick={() => setExpandedRowId(row.id)}
+                    >
+                      {row.getAllCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          <table.FlexRender cell={cell} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ) : (
+                    <TableRow
+                      className="cursor-pointer bg-muted/50 hover:bg-muted/50"
+                      onClick={() => setExpandedRowId(null)}
+                    >
+                      <TableCell colSpan={columns.length} className="p-6">
+                        <div className="flex animate-in gap-8 duration-200 fade-in slide-in-from-top-2">
+                          <img
+                            src={row.original.coverUrl}
+                            alt={row.original.title}
+                            className="h-72 w-48 rounded-lg object-cover shadow-lg"
+                          />
+                          <div className="flex-1">
+                            <ul className="m-0 list-none space-y-3 p-0 text-sm">
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Title:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.title}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Publisher:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.publisher}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Year:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.year}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Category:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.categoryName}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Edition:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.edition}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Total Copies:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.totalCopies}
+                                </span>
+                              </li>
+                              <li>
+                                <span className="inline-block w-32 font-semibold text-foreground">
+                                  Available Copies:
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {row.original.availableCopies}
+                                </span>
+                              </li>
+                              <li className="pt-2">
+                                <div className="flex gap-0">
+                                  <span className="inline-block w-32 shrink-0 font-semibold text-foreground">
+                                    Description:
+                                  </span>
+                                  <p className="max-w-2xl leading-relaxed text-muted-foreground">
+                                    {row.original.description}
+                                  </p>
+                                </div>
+                              </li>
+                            </ul>
+                            <div className="mt-6">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedRowId(null);
+                                }}
+                              >
+                                Back to list
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })
           )}
         </TableBody>
       </Table>

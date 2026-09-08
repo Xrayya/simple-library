@@ -1,11 +1,516 @@
+import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select.tsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#/components/ui/table.tsx";
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  columnFilteringFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  globalFilteringFeature,
+  rowPaginationFeature,
+  rowSortingFeature,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_auth/")({
   component: RouteComponent,
 });
 
+type Book = {
+  id: string;
+  title: string;
+  publisher: string;
+  year: number;
+  edition: number;
+  description: string;
+  categoryId: string;
+  coverUrl: string;
+  totalCopies: number;
+  availableCopies: number;
+};
+
+export const mockBooks: Book[] = [
+  {
+    id: "b101",
+    title: "Designing Data-Intensive Applications",
+    publisher: "O'Reilly Media",
+    year: 2017,
+    edition: 1,
+    description:
+      "An in-depth guide to the architecture and principles underlying reliable, scalable, and maintainable systems.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
+    totalCopies: 10,
+    availableCopies: 4,
+  },
+  {
+    id: "b102",
+    title: "Clean Code",
+    publisher: "Prentice Hall",
+    year: 2008,
+    edition: 1,
+    description:
+      "A handbook of agile software craftsmanship packed with practical examples and refactoring techniques.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1532012197267-da84d127e765",
+    totalCopies: 8,
+    availableCopies: 2,
+  },
+  {
+    id: "b103",
+    title: "The Pragmatic Programmer",
+    publisher: "Addison-Wesley",
+    year: 2019,
+    edition: 2,
+    description:
+      "Your journey to mastery: practical advice on software development, career growth, and code architecture.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
+    totalCopies: 6,
+    availableCopies: 1,
+  },
+  {
+    id: "b104",
+    title: "Refactoring: Improving the Design of Existing Code",
+    publisher: "Addison-Wesley",
+    year: 2018,
+    edition: 2,
+    description:
+      "A comprehensive catalog of refactorings and code smells to transform legacy code into clean architecture.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e",
+    totalCopies: 5,
+    availableCopies: 5,
+  },
+  {
+    id: "b105",
+    title: "Dune",
+    publisher: "Chilton Books",
+    year: 1965,
+    edition: 1,
+    description:
+      "Set on the desert planet Arrakis, a masterwork of political intrigue, religion, and ecology.",
+    categoryId: "cat-sci-fi",
+    coverUrl: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6",
+    totalCopies: 12,
+    availableCopies: 3,
+  },
+  {
+    id: "b106",
+    title: "Neuromancer",
+    publisher: "Ace Books",
+    year: 1984,
+    edition: 1,
+    description:
+      "The seminal cyberpunk novel following Case, a washed-up computer hacker hired for a mysterious heist.",
+    categoryId: "cat-sci-fi",
+    coverUrl: "https://images.unsplash.com/photo-1516979187457-637abb4f9353",
+    totalCopies: 4,
+    availableCopies: 0,
+  },
+  {
+    id: "b107",
+    title: "Foundation",
+    publisher: "Gnome Press",
+    year: 1951,
+    edition: 1,
+    description:
+      "Psychohistorian Hari Seldon foresees the fall of the Galactic Empire and creates a foundation to save civilization.",
+    categoryId: "cat-sci-fi",
+    coverUrl: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6",
+    totalCopies: 7,
+    availableCopies: 6,
+  },
+  {
+    id: "b108",
+    title: "Sapiens: A Brief History of Humankind",
+    publisher: "Harper",
+    year: 2015,
+    edition: 1,
+    description:
+      "A narrative tracing how biology and history have defined us and enhanced our understanding of humanity.",
+    categoryId: "cat-history",
+    coverUrl: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d",
+    totalCopies: 15,
+    availableCopies: 9,
+  },
+  {
+    id: "b109",
+    title: "Atomic Habits",
+    publisher: "Avery",
+    year: 2018,
+    edition: 1,
+    description:
+      "An easy and proven framework for improving your life through tiny daily behavior changes.",
+    categoryId: "cat-self-help",
+    coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
+    totalCopies: 20,
+    availableCopies: 11,
+  },
+  {
+    id: "b110",
+    title: "Deep Work",
+    publisher: "Grand Central Publishing",
+    year: 2016,
+    edition: 1,
+    description:
+      "Rules for focused success in a distracted world, prioritizing cognitive load for maximum performance.",
+    categoryId: "cat-self-help",
+    coverUrl: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
+    totalCopies: 9,
+    availableCopies: 2,
+  },
+  {
+    id: "b111",
+    title: "The Hobbit",
+    publisher: "George Allen & Unwin",
+    year: 1937,
+    edition: 1,
+    description:
+      "Bilbo Baggins leaves his peaceful life in the Shire to embark on a quest to reclaim the Lonely Mountain.",
+    categoryId: "cat-fantasy",
+    coverUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475",
+    totalCopies: 14,
+    availableCopies: 8,
+  },
+  {
+    id: "b112",
+    title: "The Name of the Wind",
+    publisher: "DAW Books",
+    year: 2007,
+    edition: 1,
+    description:
+      "The tale of Kvothe, a magically gifted young man who grows to become a notorious wizard.",
+    categoryId: "cat-fantasy",
+    coverUrl: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    totalCopies: 5,
+    availableCopies: 2,
+  },
+  {
+    id: "b113",
+    title: "Structure and Interpretation of Computer Programs",
+    publisher: "MIT Press",
+    year: 1996,
+    edition: 2,
+    description:
+      "A foundational text on computer science principles using Scheme to demonstrate abstraction and programming paradigms.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
+    totalCopies: 3,
+    availableCopies: 1,
+  },
+  {
+    id: "b114",
+    title: "1984",
+    publisher: "Secker & Warburg",
+    year: 1949,
+    edition: 1,
+    description:
+      "A dystopian novel exploring total government surveillance, propaganda, and thought control under Big Brother.",
+    categoryId: "cat-fiction",
+    coverUrl: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a",
+    totalCopies: 11,
+    availableCopies: 7,
+  },
+  {
+    id: "b115",
+    title: "To Kill a Mockingbird",
+    publisher: "J. B. Lippincott & Co.",
+    year: 1960,
+    edition: 1,
+    description:
+      "A novel about growth, racial injustice, and compassion in the American South seen through young Scout's eyes.",
+    categoryId: "cat-fiction",
+    coverUrl: "https://images.unsplash.com/photo-1476275466078-4007374efbbe",
+    totalCopies: 10,
+    availableCopies: 5,
+  },
+  {
+    id: "b116",
+    title: "Thinking, Fast and Slow",
+    publisher: "Farrar, Straus and Giroux",
+    year: 2011,
+    edition: 1,
+    description:
+      "An investigation into two modes of thought: fast, intuitive thinking vs. slow, deliberate logical reasoning.",
+    categoryId: "cat-psychology",
+    coverUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66",
+    totalCopies: 8,
+    availableCopies: 3,
+  },
+  {
+    id: "b117",
+    title: "JavaScript: The Good Parts",
+    publisher: "O'Reilly Media",
+    year: 2008,
+    edition: 1,
+    description:
+      "Uncovers the elegant, highly expressive features of JavaScript while avoiding its bad features.",
+    categoryId: "cat-tech",
+    coverUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
+    totalCopies: 6,
+    availableCopies: 6,
+  },
+  {
+    id: "b118",
+    title: "The Psychology of Money",
+    publisher: "Harriman House",
+    year: 2020,
+    edition: 1,
+    description:
+      "Timeless lessons on wealth, greed, and happiness exploring how people think about financial decisions.",
+    categoryId: "cat-finance",
+    coverUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44",
+    totalCopies: 12,
+    availableCopies: 10,
+  },
+  {
+    id: "b119",
+    title: "Zero to One",
+    publisher: "Crown Business",
+    year: 2014,
+    edition: 1,
+    description:
+      "Notes on startups, building the future, and how to create breakthrough innovations rather than incremental copies.",
+    categoryId: "cat-business",
+    coverUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    totalCopies: 7,
+    availableCopies: 2,
+  },
+  {
+    id: "b120",
+    title: "Good to Great",
+    publisher: "HarperBusiness",
+    year: 2001,
+    edition: 1,
+    description:
+      "A study on why some companies make the leap to long-term greatness while others fail to sustain success.",
+    categoryId: "cat-business",
+    coverUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
+    totalCopies: 5,
+    availableCopies: 0,
+  },
+];
+
+const features = tableFeatures({
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  globalFilteringFeature,
+  columnFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
+});
+
+const columns: Array<ColumnDef<typeof features, Book>> = [
+  {
+    accessorKey: "title",
+    header: "Title",
+  },
+  {
+    accessorKey: "publisher",
+    header: "Publisher",
+  },
+  {
+    accessorKey: "year",
+    header: "Year",
+  },
+  {
+    accessorKey: "edition",
+    header: "Edition",
+  },
+  {
+    accessorKey: "totalCopies",
+    header: "Total Copies",
+  },
+  {
+    accessorKey: "availableCopies",
+    header: "Available Copies",
+  },
+];
+
+export function BooksTable() {
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+
+  const table = useTable({
+    key: "books-table",
+    features,
+    columns: columns,
+    data: mockBooks,
+    state: {
+      globalFilter,
+      pagination,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+  });
+
+  return (
+    <div className="space-y-4">
+      <Input
+        value={globalFilter ?? ""}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        placeholder="Search books..."
+        className="max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+      />
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                const sorted = header.column.getIsSorted();
+                const Icon =
+                  sorted === "asc"
+                    ? ArrowUp
+                    : sorted === "desc"
+                      ? ArrowDown
+                      : ArrowUpDown;
+
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="-ml-3 h-8 data-[state=open]:bg-accent"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <table.FlexRender header={header} />
+                        <Icon className="ml-2" />
+                      </Button>
+                    ) : (
+                      <span className="text-sm font-medium">
+                        <table.FlexRender header={header} />
+                      </span>
+                    )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.length === 0 ? (
+            <TableRow>
+              <TableCell className="h-24 text-center">No results.</TableCell>
+            </TableRow>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getAllCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">Rows per page</p>
+          <Select
+            value={`${table.state.pagination.pageSize}`}
+            onValueChange={(value) => table.setPageSize(Number(value))}
+          >
+            <SelectTrigger size="sm" className="w-17.5">
+              <SelectValue placeholder={`${table.state.pagination.pageSize}`} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+                <SelectItem key={pageSize} value={`${pageSize}`}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+              <SelectItem value="Infinity">All</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex w-25 items-center justify-center text-sm font-medium">
+          Page {table.state.pagination.pageIndex + 1} of{" "}
+          {Math.max(1, table.getPageCount())}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="hidden size-8 lg:flex"
+            onClick={() => table.firstPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <span className="sr-only">Go to first page</span>
+            <ChevronsLeft />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <span className="sr-only">Go to previous page</span>
+            <ChevronLeft />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-8"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <span className="sr-only">Go to next page</span>
+            <ChevronRight />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="hidden size-8 lg:flex"
+            onClick={() => table.lastPage()}
+            disabled={!table.getCanLastPage()}
+          >
+            <span className="sr-only">Go to last page</span>
+            <ChevronsRight />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RouteComponent() {
-  return <div>
-    Hello HOme
-  </div>;
+  return (
+    <div className="flex flex-col gap-10 p-8">
+      <section>
+        <h3 className="mb-4 text-lg font-semibold">Books</h3>
+        <BooksTable />
+      </section>
+    </div>
+  );
 }

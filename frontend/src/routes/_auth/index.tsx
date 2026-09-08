@@ -389,7 +389,7 @@ export function BooksTable() {
         value={globalFilter ?? ""}
         onChange={(e) => setGlobalFilter(e.target.value)}
         placeholder="Search books..."
-        className="max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="max-w-sm rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
       />
       <Table>
         <TableHeader>
@@ -430,7 +430,7 @@ export function BooksTable() {
         <TableBody>
           {table.getRowModel().rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="text-center">
                 No results.
               </TableCell>
             </TableRow>
@@ -441,7 +441,7 @@ export function BooksTable() {
                 <Fragment key={row.id}>
                   {!isExpanded ? (
                     <TableRow
-                      className="cursor-pointer transition-colors hover:bg-muted/50"
+                      className="cursor-pointer transition-all hover:bg-muted/50"
                       onClick={() => setExpandedRowId(row.id)}
                     >
                       {row.getAllCells().map((cell) => (
@@ -463,7 +463,7 @@ export function BooksTable() {
                             className="h-72 w-48 rounded-lg object-cover shadow-lg"
                           />
                           <div className="flex-1">
-                            <ul className="m-0 list-none space-y-3 p-0 text-sm">
+                            <ul className="m-0 list-none space-y-2 p-0 text-sm">
                               <li>
                                 <span className="inline-block w-32 font-semibold text-foreground">
                                   Title:
@@ -520,9 +520,9 @@ export function BooksTable() {
                                   {row.original.availableCopies}
                                 </span>
                               </li>
-                              <li className="pt-2">
+                              <li>
                                 <div className="flex gap-0">
-                                  <span className="inline-block w-32 shrink-0 font-semibold text-foreground">
+                                  <span className="inline-block w-32 font-semibold text-foreground">
                                     Description:
                                   </span>
                                   <p className="max-w-2xl leading-relaxed text-muted-foreground">

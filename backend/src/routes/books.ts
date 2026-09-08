@@ -3,7 +3,7 @@ import { authMiddleware } from "../middlewares/auth";
 import { validateJsonRequest } from "../middlewares/validation";
 import {
   deleteBook,
-  getAllBooks,
+  getBooks,
   insertBook,
   updateBook,
 } from "../services/books";
@@ -14,7 +14,7 @@ import {
 
 export const booksRoute = new Hono()
   .get("/", authMiddleware, async (c) => {
-    const books = await getAllBooks();
+    const books = await getBooks();
 
     return c.json({ books }, 200);
   })

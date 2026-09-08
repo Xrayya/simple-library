@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { books, categories } from "../db/schema";
 import { db } from "../db/db";
 
@@ -66,10 +66,78 @@ export async function insertBook({
   return result;
 }
 
-// WARNING: I just realized that these null optional is kinda dangerous
-export async function getAllBooks(): Promise<
-  ReturnedBookWithCategoryNameType[]
-> {
+export async function getBooks(
+  filter?: Partial<
+    Omit<typeof books.$inferSelect, "coverUrl" | "createdAt" | "updatedAt">
+  > & {
+    searchString?: string;
+    publishedYearFrom?: number;
+    publishedYearUntil?: number;
+  },
+): Promise<ReturnedBookWithCategoryNameType[]> {
+  const conditions: any[] = [];
+
+  if (filter?.id) {
+    conditions.push(eq(books.id, filter.id));
+  } else {
+    if (filter?.title) {
+      conditions.push(ilike(books.title, `%${filter.title}%`));
+    }
+    if (filter?.author) {
+      conditions.push(ilike(books.author, `%${filter.author}%`));
+    }
+    if (filter?.publisher) {
+      conditions.push(ilike(books.publisher, `%${filter.publisher}%`));
+    }
+
+    if (filter?.year) {
+      conditions.push(eq(books.year, filter.year));
+    } else {
+      if (filter?.publishedYearFrom) {
+        conditions.push(gte(books.year, filter.publishedYearFrom));
+      }
+      if (filter?.publishedYearUntil) {
+        conditions.push(lte(books.year, filter.publishedYearUntil));
+      }
+    }
+
+    if (filter?.edition) {
+      conditions.push(eq(books.edition, filter.edition));
+    }
+    if (filter?.categoryId) {
+      conditions.push(eq(books.categoryId, filter.categoryId));
+    }
+
+    const hasFieldFilter =
+      filter?.title ||
+      filter?.author ||
+      filter?.publisher ||
+      filter?.year ||
+      filter?.publishedYearFrom ||
+      filter?.publishedYearUntil ||
+      filter?.edition ||
+      filter?.categoryId;
+
+    if (!hasFieldFilter && filter?.searchString) {
+      const searchConditions = [
+        ilike(books.title, `%${filter.searchString}%`),
+        ilike(books.author, `%${filter.searchString}%`),
+        ilike(books.publisher, `%${filter.searchString}%`),
+        ilike(books.description, `%${filter.searchString}%`),
+      ];
+
+      const searchNum = parseInt(filter.searchString);
+      if (!isNaN(searchNum)) {
+        searchConditions.push(eq(books.year, searchNum));
+        searchConditions.push(eq(books.edition, searchNum));
+        searchConditions.push(eq(books.totalCopies, searchNum));
+        searchConditions.push(eq(books.availableCopies, searchNum));
+      }
+
+      conditions.push(or(...searchConditions));
+    }
+  }
+
   const result = await db
     .select({
       id: books.id,
@@ -88,33 +156,8 @@ export async function getAllBooks(): Promise<
       updatedAt: books.updatedAt,
     })
     .from(books)
-    .innerJoin(categories, eq(books.categoryId, categories.id));
-
-  return result;
-}
-
-export async function getBooksFiltered(): Promise<
-  ReturnedBookWithCategoryNameType[]
-> {
-  const result = await db
-    .select({
-      id: books.id,
-      title: books.title,
-      author: books.author,
-      publisher: books.publisher,
-      year: books.year,
-      edition: books.edition,
-      description: books.description,
-      categoryId: books.categoryId,
-      categoryName: categories.name,
-      coverUrl: books.coverUrl,
-      totalCopies: books.totalCopies,
-      availableCopies: books.availableCopies,
-      createdAt: books.createdAt,
-      updatedAt: books.updatedAt,
-    })
-    .from(books)
-    .innerJoin(categories, eq(books.categoryId, categories.id));
+    .innerJoin(categories, eq(books.categoryId, categories.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   return result;
 }
@@ -150,14 +193,11 @@ export async function deleteBook({
 }: {
   bookId: string;
 }): Promise<{ bookId: string; title: string; timestamp: Date }> {
-  const result = await db
-    .delete(books)
-    .where(eq(books.id, bookId))
-    .returning({
-      bookId: books.id,
-      title: books.title,
-      timestamp: books.createdAt,
-    });
+  const result = await db.delete(books).where(eq(books.id, bookId)).returning({
+    bookId: books.id,
+    title: books.title,
+    timestamp: books.createdAt,
+  });
 
   return result[0];
 }

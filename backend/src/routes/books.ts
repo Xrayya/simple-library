@@ -4,6 +4,7 @@ import { validateJsonRequest } from "../middlewares/validation";
 import {
   deleteBook,
   getBooks,
+  getTotalBookCount,
   insertBook,
   updateBook,
 } from "../services/books";
@@ -15,8 +16,9 @@ import {
 export const booksRoute = new Hono()
   .get("/", authMiddleware, async (c) => {
     const books = await getBooks();
+    const totalBookCount = await getTotalBookCount();
 
-    return c.json({ books }, 200);
+    return c.json({ books, meta: { totalBookCount } }, 200);
   })
   .post("/", ...validateJsonRequest(insertBookSchema), async (c) => {
     const payload = c.req.valid("json");

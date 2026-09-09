@@ -1,4 +1,4 @@
-import { and, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, count, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { books, categories } from "../db/schema";
 import { db } from "../db/db";
 
@@ -160,6 +160,12 @@ export async function getBooks(
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   return result;
+}
+
+export async function getTotalBookCount(): Promise<number> {
+  const result = await db.select({ count: count(books.id) }).from(books);
+
+  return result[0]!.count;
 }
 
 export async function updateBook({

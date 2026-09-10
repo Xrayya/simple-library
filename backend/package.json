@@ -1,7 +1,9 @@
 {
   "name": "backend-new",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "db:seed": "bun run 'test/seeder/100 books.ts'",
+    "db:clean": "bun run 'test/seeder/cleaner.ts'"
   },
   "dependencies": {
     "@hono/oauth-providers": "^0.9.0",

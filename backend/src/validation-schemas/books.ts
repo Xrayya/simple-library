@@ -1,6 +1,52 @@
 import z from "zod";
 import { BaseRequestSchema } from "./base";
 
+export const getBooksSchema = new BaseRequestSchema({
+  jsonSchema: z.object({}),
+  cookieSchema: z.object({}),
+  formSchema: z.object({}),
+  headerSchema: z.object({}),
+  paramSchema: z.object({}),
+  querySchema: z.object({
+    id: z.uuid().optional(),
+    title: z.string().min(1).max(500).optional(),
+    author: z.string().min(1).max(100).optional(),
+    publisher: z.string().min(1).max(100).optional(),
+    year: z
+      .string()
+      .regex(/^[1-9]\d*$/, {
+        message: "Must be a string containing only positive integers",
+      })
+      .refine((val) => parseInt(val) < new Date().getFullYear(), {
+        message: "Year cannot be in the future",
+      })
+      .transform((val) => parseInt(val))
+      .optional(),
+    edition: z
+      .string()
+      .regex(/^[1-9]\d*$/, {
+        message: "Must be a string containing only positive integers",
+      })
+      .transform((val) => parseInt(val))
+      .optional(),
+    description: z.string().max(500).optional(),
+    categoryId: z.uuid().optional(),
+    totalCopies: z
+      .int()
+      .max(new Date().getFullYear(), {
+        message: "Year cannot be in the future",
+      })
+      .optional(),
+    availableCopies: z
+      .int()
+      .max(new Date().getFullYear(), {
+        message: "Year cannot be in the future",
+      })
+      .optional(),
+    searchString: z.string().optional(),
+  }),
+});
+
 export const insertBookSchema = new BaseRequestSchema({
   jsonSchema: z.object({
     title: z.string(),

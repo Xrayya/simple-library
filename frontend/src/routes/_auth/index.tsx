@@ -374,7 +374,7 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
   },
 ];
 
-export function BooksTable() {
+function RouteComponent() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -396,254 +396,248 @@ export function BooksTable() {
   });
 
   return (
-    <div className="space-y-4">
-      <Input
-        value={globalFilter ?? ""}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Search books..."
-        className="max-w-sm rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-      />
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const sorted = header.column.getIsSorted();
-                const Icon =
-                  sorted === "asc"
-                    ? ArrowUp
-                    : sorted === "desc"
-                      ? ArrowDown
-                      : ArrowUpDown;
-
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="-ml-3 h-8 data-[state=open]:bg-accent"
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        <table.FlexRender header={header} />
-                        <Icon className="ml-2" />
-                      </Button>
-                    ) : (
-                      <span className="text-sm font-medium">
-                        <table.FlexRender header={header} />
-                      </span>
-                    )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          ) : (
-            table.getRowModel().rows.map((row) => {
-              const isExpanded = expandedRowId === row.id;
-              return (
-                <Fragment key={row.id}>
-                  {!isExpanded ? (
-                    <TableRow
-                      className="cursor-pointer transition-all hover:bg-muted/50"
-                      onClick={() => setExpandedRowId(row.id)}
-                    >
-                      {row.getAllCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          <table.FlexRender cell={cell} />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ) : (
-                    <TableRow
-                      className="cursor-pointer bg-muted/50 hover:bg-muted/50"
-                      onClick={() => setExpandedRowId(null)}
-                    >
-                      <TableCell colSpan={columns.length} className="p-6">
-                        <div className="flex animate-in gap-8 duration-200 fade-in slide-in-from-top-2">
-                          <img
-                            src={row.original.coverUrl}
-                            alt={row.original.title}
-                            className="h-72 w-48 rounded-lg object-cover shadow-lg"
-                          />
-                          <div className="flex-1">
-                            <ul className="m-0 list-none space-y-2 p-0 text-sm">
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Title:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.title}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Publisher:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.publisher}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Year:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.year}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Category:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.categoryName}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Edition:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.edition}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Total Copies:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.totalCopies}
-                                </span>
-                              </li>
-                              <li>
-                                <span className="inline-block w-32 font-semibold text-foreground">
-                                  Available Copies:
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {row.original.availableCopies}
-                                </span>
-                              </li>
-                              <li>
-                                <div className="flex gap-0">
-                                  <span className="inline-block w-32 font-semibold text-foreground">
-                                    Description:
-                                  </span>
-                                  <p className="max-w-2xl leading-relaxed text-muted-foreground">
-                                    {row.original.description}
-                                  </p>
-                                </div>
-                              </li>
-                            </ul>
-                            <div className="mt-6">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedRowId(null);
-                                }}
-                              >
-                                Back to list
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">Rows per page</p>
-          <Select
-            value={`${table.state.pagination.pageSize}`}
-            onValueChange={(value) => table.setPageSize(Number(value))}
-          >
-            <SelectTrigger size="sm" className="w-17.5">
-              <SelectValue placeholder={`${table.state.pagination.pageSize}`} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[5, 10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-              <SelectItem value="Infinity">All</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex w-25 items-center justify-center text-sm font-medium">
-          Page {table.state.pagination.pageIndex + 1} of{" "}
-          {Math.max(1, table.getPageCount())}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden size-8 lg:flex"
-            onClick={() => table.firstPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <span className="sr-only">Go to first page</span>
-            <ChevronsLeft />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <span className="sr-only">Go to previous page</span>
-            <ChevronLeft />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <span className="sr-only">Go to next page</span>
-            <ChevronRight />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden size-8 lg:flex"
-            onClick={() => table.lastPage()}
-            disabled={!table.getCanLastPage()}
-          >
-            <span className="sr-only">Go to last page</span>
-            <ChevronsRight />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RouteComponent() {
-  return (
     <div className="flex flex-col gap-10 p-8">
       <section>
         <h3 className="mb-4 text-lg font-semibold">Books</h3>
-        <BooksTable />
+        <div className="space-y-4">
+          <Input
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search books..."
+            className="max-w-sm rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          />
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const sorted = header.column.getIsSorted();
+                    const Icon =
+                      sorted === "asc"
+                        ? ArrowUp
+                        : sorted === "desc"
+                          ? ArrowDown
+                          : ArrowUpDown;
+
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="-ml-3 h-8 data-[state=open]:bg-accent"
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            <table.FlexRender header={header} />
+                            <Icon className="ml-2" />
+                          </Button>
+                        ) : (
+                          <span className="text-sm font-medium">
+                            <table.FlexRender header={header} />
+                          </span>
+                        )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => {
+                  const isExpanded = expandedRowId === row.id;
+                  return (
+                    <Fragment key={row.id}>
+                      {!isExpanded ? (
+                        <TableRow
+                          className="cursor-pointer transition-all hover:bg-muted/50"
+                          onClick={() => setExpandedRowId(row.id)}
+                        >
+                          {row.getAllCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              <table.FlexRender cell={cell} />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ) : (
+                        <TableRow
+                          className="cursor-pointer bg-muted/50 hover:bg-muted/50"
+                          onClick={() => setExpandedRowId(null)}
+                        >
+                          <TableCell colSpan={columns.length} className="p-6">
+                            <div className="flex animate-in gap-8 duration-200 fade-in slide-in-from-top-2">
+                              <img
+                                src={row.original.coverUrl}
+                                alt={row.original.title}
+                                className="h-72 w-48 rounded-lg object-cover shadow-lg"
+                              />
+                              <div className="flex-1">
+                                <ul className="m-0 list-none space-y-2 p-0 text-sm">
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Title:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.title}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Publisher:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.publisher}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Year:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.year}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Category:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.categoryName}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Edition:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.edition}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Total Copies:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.totalCopies}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <span className="inline-block w-32 font-semibold text-foreground">
+                                      Available Copies:
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {row.original.availableCopies}
+                                    </span>
+                                  </li>
+                                  <li>
+                                    <div className="flex gap-0">
+                                      <span className="inline-block w-32 font-semibold text-foreground">
+                                        Description:
+                                      </span>
+                                      <p className="max-w-2xl leading-relaxed text-muted-foreground">
+                                        {row.original.description}
+                                      </p>
+                                    </div>
+                                  </li>
+                                </ul>
+                                <div className="mt-6">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedRowId(null);
+                                    }}
+                                  >
+                                    Back to list
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Rows per page</p>
+              <Select
+                value={`${table.state.pagination.pageSize}`}
+                onValueChange={(value) => table.setPageSize(Number(value))}
+              >
+                <SelectTrigger size="sm" className="w-17.5">
+                  <SelectValue placeholder={`${table.state.pagination.pageSize}`} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+                    <SelectItem key={pageSize} value={`${pageSize}`}>
+                      {pageSize}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="Infinity">All</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex w-25 items-center justify-center text-sm font-medium">
+              Page {table.state.pagination.pageIndex + 1} of{" "}
+              {Math.max(1, table.getPageCount())}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="hidden size-8 lg:flex"
+                onClick={() => table.firstPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to first page</span>
+                <ChevronsLeft />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="hidden size-8 lg:flex"
+                onClick={() => table.lastPage()}
+                disabled={!table.getCanLastPage()}
+              >
+                <span className="sr-only">Go to last page</span>
+                <ChevronsRight />
+              </Button>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

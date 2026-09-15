@@ -1,4 +1,3 @@
-import { Header } from "#/components/header";
 import { Toaster } from "#/components/ui/toast";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import { ThemeProvider } from "#/contexts/theme-context";
@@ -22,7 +21,6 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <TooltipProvider>
-            <Header />
             <Outlet />
           </TooltipProvider>
         </ThemeProvider>

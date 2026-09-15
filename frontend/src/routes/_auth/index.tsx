@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table.tsx";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   columnFilteringFeature,
@@ -358,19 +359,23 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
   },
   {
     accessorKey: "categoryName",
-    header: "Category Name",
+    header: "Category",
   },
   {
     accessorKey: "edition",
     header: "Edition",
   },
   {
-    accessorKey: "totalCopies",
-    header: "Total Copies",
-  },
-  {
-    accessorKey: "availableCopies",
+    id: "copies",
     header: "Available Copies",
+    cell: (info) => (
+      <>
+        {info.row.original.availableCopies}
+        <span className="text-muted-foreground">
+          /{info.row.original.totalCopies}
+        </span>
+      </>
+    ),
   },
 ];
 
@@ -381,6 +386,14 @@ function RouteComponent() {
     pageIndex: 0,
     pageSize: 5,
   });
+
+  // TODO: start simple usequery book
+  // const { data, isLoading, error } = useQuery(
+  //   queryOptions({
+  //     queryKey: ["books"],
+  //     queryFn: async () => { },
+  //   }),
+  // );
 
   const table = useTable({
     key: "books-table",
@@ -577,7 +590,9 @@ function RouteComponent() {
                 onValueChange={(value) => table.setPageSize(Number(value))}
               >
                 <SelectTrigger size="sm" className="w-17.5">
-                  <SelectValue placeholder={`${table.state.pagination.pageSize}`} />
+                  <SelectValue
+                    placeholder={`${table.state.pagination.pageSize}`}
+                  />
                 </SelectTrigger>
                 <SelectContent side="top">
                   {[5, 10, 20, 30, 40, 50].map((pageSize) => (

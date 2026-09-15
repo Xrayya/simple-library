@@ -25,7 +25,7 @@ import { GalleryVerticalEnd, LoaderCircle } from "lucide-react";
 import type { z } from "zod";
 import { Route as registerRoute } from "./register";
 import { env } from "#/lib/env.ts";
-import {Route as aboutRoute} from "./about"
+import { Route as homeRoute } from "./_auth/index.tsx";
 
 export const Route = createFileRoute("/login")({
   component: RouteComponent,
@@ -74,7 +74,7 @@ function RouteComponent() {
       setTimeout(() => {
         // TODO: navigate to home
         navigate({
-          to: aboutRoute.to,
+          to: homeRoute.to,
         });
       }, 500);
     },

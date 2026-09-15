@@ -41,15 +41,17 @@ export function NavMain({
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger className="w-full">
-                <SidebarMenuButton tooltip={item.title} {...item.itemArgs}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                  {item.subItems ? (
-                    <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                  ) : null}
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
+              <CollapsibleTrigger
+                render={
+                  <SidebarMenuButton tooltip={item.title} {...item.itemArgs}>
+                    {item.icon}
+                    <span>{item.title}</span>
+                    {item.subItems ? (
+                      <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    ) : null}
+                  </SidebarMenuButton>
+                }
+              />
               {item.subItems ? (
                 <CollapsibleContent className="w-full">
                   <SidebarMenuSub>

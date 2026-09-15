@@ -32,18 +32,29 @@ export const getBooksSchema = new BaseRequestSchema({
     description: z.string().max(500).optional(),
     categoryId: z.uuid().optional(),
     totalCopies: z
-      .int()
-      .max(new Date().getFullYear(), {
-        message: "Year cannot be in the future",
-      })
+      .string()
+      .regex(/^\d+$/, { message: "Must be a non-negative integer" })
+      .transform((val) => parseInt(val))
       .optional(),
     availableCopies: z
-      .int()
-      .max(new Date().getFullYear(), {
-        message: "Year cannot be in the future",
-      })
+      .string()
+      .regex(/^\d+$/, { message: "Must be a non-negative integer" })
+      .transform((val) => parseInt(val))
       .optional(),
     searchString: z.string().optional(),
+    publishedYearFrom: z
+      .string()
+      .regex(/^[1-9]\d*$/, { message: "Must be a positive integer" })
+      .transform((val) => parseInt(val))
+      .optional(),
+    publishedYearUntil: z
+      .string()
+      .regex(/^[1-9]\d*$/, { message: "Must be a positive integer" })
+      .refine((val) => parseInt(val) <= new Date().getFullYear(), {
+        message: "Year cannot be in the future",
+      })
+      .transform((val) => parseInt(val))
+      .optional(),
   }),
 });
 

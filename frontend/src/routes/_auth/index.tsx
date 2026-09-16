@@ -15,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table.tsx";
+import { authFetch } from "#/lib/utils.ts";
+import type { BookFilter } from "#/models/book.ts";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -379,6 +381,39 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
   },
 ];
 
+export function bookListOptions(filter?: BookFilter) {
+  return queryOptions({
+    queryKey: ["books", filter] as const,
+    queryFn: async (): Promise<{ books: Book[]; totalBookCount: number }> => {
+      const url = new URL("/api/books", window.location.origin);
+
+      if (filter) {
+        Object.entries(filter).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.set(key, value.toString());
+          }
+        });
+      }
+
+      const response = await authFetch(url);
+
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(
+          payload?.error?.message || "An error occurred while fetching data",
+          { cause: payload?.error?.name },
+        );
+      }
+
+      const payload = await response.json();
+      return {
+        books: payload.books,
+        totalBookCount: payload.meta.totalBookCount,
+      };
+    },
+  });
+}
+
 function RouteComponent() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
@@ -388,12 +423,12 @@ function RouteComponent() {
   });
 
   // TODO: start simple usequery book
-  // const { data, isLoading, error } = useQuery(
-  //   queryOptions({
-  //     queryKey: ["books"],
-  //     queryFn: async () => { },
-  //   }),
-  // );
+  const { data, isLoading, error } = useQuery(
+    bookListOptions({ searchString: globalFilter }),
+  );
+
+  const klasdf ="asfds";
+  klasdf.charCodeAt(1);
 
   const table = useTable({
     key: "books-table",

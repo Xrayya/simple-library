@@ -26,4 +26,6 @@ export type BookFilter = {
   searchString?: string;
   publishedYearFrom?: number;
   publishedYearUntil?: number;
+  pageIndex?: number;
+  pageSize?: number;
 };

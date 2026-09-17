@@ -73,8 +73,10 @@ export async function getBooks(
     searchString?: string;
     publishedYearFrom?: number;
     publishedYearUntil?: number;
+    pageIndex?: number;
+    pageSize?: number;
   },
-): Promise<ReturnedBookWithCategoryNameType[]> {
+): Promise<{ books: ReturnedBookWithCategoryNameType[]; totalCount: number }> {
   const conditions: any[] = [];
 
   if (filter?.id) {
@@ -138,7 +140,19 @@ export async function getBooks(
     }
   }
 
-  const result = await db
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const totalCountResult = await db
+    .select({ count: count(books.id) })
+    .from(books)
+    .where(whereClause);
+
+  const totalCount = totalCountResult[0]!.count;
+
+  const pageIndex = filter?.pageIndex ?? 0;
+  const pageSize = filter?.pageSize ?? 10;
+
+  const booksResult = await db
     .select({
       id: books.id,
       title: books.title,
@@ -157,9 +171,11 @@ export async function getBooks(
     })
     .from(books)
     .innerJoin(categories, eq(books.categoryId, categories.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined);
+    .where(whereClause)
+    .limit(pageSize)
+    .offset(pageIndex * pageSize);
 
-  return result;
+  return { books: booksResult, totalCount };
 }
 
 export async function getTotalBookCount(): Promise<number> {

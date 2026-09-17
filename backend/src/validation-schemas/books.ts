@@ -55,6 +55,16 @@ export const getBooksSchema = new BaseRequestSchema({
       })
       .transform((val) => parseInt(val))
       .optional(),
+    pageIndex: z
+      .string()
+      .regex(/^\d+$/, { message: "Must be a non-negative integer" })
+      .transform((val) => parseInt(val))
+      .optional(),
+    pageSize: z
+      .string()
+      .regex(/^\d+$/, { message: "Must be a non-negative integer" })
+      .transform((val) => parseInt(val))
+      .optional(),
   }),
 });
 

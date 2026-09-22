@@ -1,4 +1,4 @@
-import { and, count, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, count, eq, gte, ilike, lte, or, asc, desc } from "drizzle-orm";
 import { books, categories } from "../db/schema";
 import { db } from "../db/db";
 
@@ -75,6 +75,7 @@ export async function getBooks(
     publishedYearUntil?: number;
     pageIndex?: number;
     pageSize?: number;
+    sorting?: Array<{ id: string; desc: boolean }>;
   },
 ): Promise<{ books: ReturnedBookWithCategoryNameType[]; totalCount: number }> {
   const conditions: any[] = [];
@@ -152,6 +153,34 @@ export async function getBooks(
   const pageIndex = filter?.pageIndex ?? 0;
   const pageSize = filter?.pageSize ?? 10;
 
+  const orderByClauses: any[] = [];
+  if (filter?.sorting && Array.isArray(filter.sorting)) {
+    filter.sorting.forEach((sortItem) => {
+      const orderFn = sortItem.desc ? desc : asc;
+      switch (sortItem.id) {
+        case "title":
+          orderByClauses.push(orderFn(books.title));
+          break;
+        case "categoryName":
+          orderByClauses.push(orderFn(categories.name));
+          break;
+        case "year":
+          orderByClauses.push(orderFn(books.year));
+          break;
+        case "publisher":
+          orderByClauses.push(orderFn(books.publisher));
+          break;
+        case "copies":
+          orderByClauses.push(orderFn(books.availableCopies));
+          break;
+      }
+    });
+  }
+
+  if (orderByClauses.length === 0) {
+    orderByClauses.push(desc(books.createdAt));
+  }
+
   const booksResult = await db
     .select({
       id: books.id,
@@ -172,6 +201,7 @@ export async function getBooks(
     .from(books)
     .innerJoin(categories, eq(books.categoryId, categories.id))
     .where(whereClause)
+    .orderBy(...orderByClauses)
     .limit(pageSize)
     .offset(pageIndex * pageSize);
 

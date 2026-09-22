@@ -65,6 +65,17 @@ export const getBooksSchema = new BaseRequestSchema({
       .regex(/^\d+$/, { message: "Must be a non-negative integer" })
       .transform((val) => parseInt(val))
       .optional(),
+    sorting: z
+      .string()
+      .optional()
+      .transform((val) => {
+        if (!val) return undefined;
+        try {
+          return JSON.parse(val) as Array<{ id: string; desc: boolean }>;
+        } catch {
+          return undefined;
+        }
+      }),
   }),
 });
 

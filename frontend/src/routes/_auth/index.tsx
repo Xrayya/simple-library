@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "#/components/ui/alert-dialog.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import {
@@ -17,7 +28,7 @@ import {
 } from "#/components/ui/table.tsx";
 import { authFetch } from "#/lib/utils.ts";
 import type { BookFilter } from "#/models/book.ts";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   columnFilteringFeature,
@@ -334,6 +345,67 @@ const features = tableFeatures({
   paginatedRowModel: createPaginatedRowModel(),
 });
 
+const ActionCell = ({
+  bookId,
+  bookTitle,
+}: {
+  bookId: Book["id"];
+  bookTitle: Book["title"];
+}) => {
+  const mutation = useMutation({
+    mutationFn: async (bookId: string) => {
+      // const url = new URL(`/api/borrowing/${bookId}`, window.location.origin);
+
+      // const response = await authFetch(url, {
+      //   method: "POST",
+      // });
+
+      // if (!response.ok) {
+      //   const payload = await response.json();
+      //   throw new Error(
+      //     payload?.error?.message || "An error occurred while borrowing the book",
+      //     { cause: payload?.error?.name },
+      //   );
+      // }
+
+      // return await response.json();
+
+      console.log(`API request triggered for borrowing book ID: ${bookId}`);
+      return { message: "Mock success" };
+    },
+  });
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Borrow
+          </Button>
+        }
+      />
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Borrowing</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to borrow &ldquo;{bookTitle}&rdquo;?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => mutation.mutate(bookId)}>
+            Confirm
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 const columns: Array<ColumnDef<typeof features, Book>> = [
   {
     accessorKey: "coverUrl",
@@ -352,24 +424,20 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
     header: "Title",
   },
   {
-    accessorKey: "publisher",
-    header: "Publisher",
+    accessorKey: "categoryName",
+    header: "Category",
   },
   {
     accessorKey: "year",
     header: "Year",
   },
   {
-    accessorKey: "categoryName",
-    header: "Category",
-  },
-  {
-    accessorKey: "edition",
-    header: "Edition",
+    accessorKey: "publisher",
+    header: "Publisher",
   },
   {
     id: "copies",
-    header: "Available Copies",
+    header: "Stock",
     cell: (info) => (
       <>
         {info.row.original.availableCopies}
@@ -377,6 +445,16 @@ const columns: Array<ColumnDef<typeof features, Book>> = [
           /{info.row.original.totalCopies}
         </span>
       </>
+    ),
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: (info) => (
+      <ActionCell
+        bookId={info.row.original.id}
+        bookTitle={info.row.original.title}
+      />
     ),
   },
 ];

@@ -427,14 +427,11 @@ function RouteComponent() {
     bookListOptions({ searchString: globalFilter }),
   );
 
-  const klasdf ="asfds";
-  klasdf.charCodeAt(1);
-
   const table = useTable({
     key: "books-table",
     features,
     columns: columns,
-    data: mockBooks,
+    data: data?.books || [],
     state: {
       globalFilter,
       pagination,
@@ -442,6 +439,16 @@ function RouteComponent() {
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
   });
+
+  // TODO: complete
+  if (isLoading) {
+    return <div></div>;
+  }
+
+  // TODO: complete
+  if (error) {
+    return <div></div>;
+  }
 
   return (
     <div className="flex flex-col gap-10 p-8">

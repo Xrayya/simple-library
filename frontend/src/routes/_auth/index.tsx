@@ -42,6 +42,8 @@ import {
   tableFeatures,
   useTable,
   type ColumnDef,
+  type PaginationState,
+  type SortingState,
 } from "@tanstack/react-table";
 import {
   ArrowDown,
@@ -494,29 +496,48 @@ export function bookListOptions(filter?: BookFilter) {
 
 function RouteComponent() {
   const [globalFilter, setGlobalFilter] = useState("");
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
+  console.log(sorting);
 
   // TODO: start simple usequery book
   const { data, isLoading, error } = useQuery(
-    bookListOptions({ searchString: globalFilter }),
+    bookListOptions({
+      searchString: globalFilter,
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+      sorting: sorting.length > 0 ? JSON.stringify(sorting) : undefined,
+    }),
   );
 
-  const table = useTable({
-    key: "books-table",
-    features,
-    columns: columns,
-    data: data?.books || [],
-    state: {
-      globalFilter,
-      pagination,
+  const table = useTable(
+    {
+      key: "books-table",
+      features,
+      columns: columns,
+      data: data?.books || [],
+      rowCount: data?.totalBookCount,
+      state: { sorting, globalFilter, pagination },
+      onSortingChange: (updater) => {
+        setSorting(updater);
+        setPagination((previous) => ({ ...previous, pageIndex: 0 }));
+      },
+      onGlobalFilterChange: (updater) => {
+        setGlobalFilter(updater);
+        setPagination((previous) => ({ ...previous, pageIndex: 0 }));
+      },
+      onPaginationChange: setPagination,
+      manualFiltering: true,
+      manualSorting: true,
+      manualPagination: true,
     },
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
-  });
+    (state) => state,
+  );
 
   // TODO: complete
   if (isLoading) {

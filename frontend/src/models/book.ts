@@ -28,4 +28,5 @@ export type BookFilter = {
   publishedYearUntil?: number;
   pageIndex?: number;
   pageSize?: number;
+  sorting?: string;
 };

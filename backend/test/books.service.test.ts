@@ -94,10 +94,11 @@ describe("Books Service", () => {
   });
 
   test("should get books and verify every field", async () => {
-    const booksList = await getBooks({ id: createdBookIds[0] });
+    const result = await getBooks({ id: createdBookIds[0] });
 
-    expect(booksList).toHaveLength(1);
-    const book = booksList[0];
+    expect(result.books).toHaveLength(1);
+    expect(result.totalCount).toBe(1);
+    const book = result.books[0];
     
     expect(book.id).toBe(createdBookIds[0]);
     expect(book.title).toBe(mockBooks[0].title);
@@ -116,24 +117,26 @@ describe("Books Service", () => {
   });
 
   test("should filter books by title and edition to distinguish similar entries", async () => {
-    const results = await getBooks({ 
+    const result = await getBooks({ 
       title: "Dune Messiah",
       edition: 2 
     });
 
-    expect(results).toHaveLength(1);
-    expect(results[0].id).toBe(createdBookIds[2]);
-    expect(results[0].edition).toBe(2);
+    expect(result.books).toHaveLength(1);
+    expect(result.totalCount).toBe(1);
+    expect(result.books[0].id).toBe(createdBookIds[2]);
+    expect(result.books[0].edition).toBe(2);
   });
 
   test("should filter books by year range", async () => {
-    const results = await getBooks({
+    const result = await getBooks({
       publishedYearFrom: 1966,
       publishedYearUntil: 1970,
     });
 
-    expect(results).toHaveLength(2); // Should return both Dune Messiah editions
-    results.forEach((b) => {
+    expect(result.books).toHaveLength(2); // Should return both Dune Messiah editions
+    expect(result.totalCount).toBe(2);
+    result.books.forEach((b) => {
       expect(b.year).toBe(1969);
       expect(b.title).toBe("Dune Messiah");
       expect(b.author).toBe("Frank Herbert");
@@ -142,10 +145,39 @@ describe("Books Service", () => {
   });
 
   test("should get books via search string across multiple fields", async () => {
-    const results = await getBooks({ searchString: "Putnam" });
+    const result = await getBooks({ searchString: "Putnam" });
 
-    expect(results).toHaveLength(2);
-    expect(results[0].publisher).toBe("Putnam");
+    expect(result.books).toHaveLength(2);
+    expect(result.totalCount).toBe(2);
+    expect(result.books[0].publisher).toBe("Putnam");
+  });
+
+  test("should paginate books with pageSize", async () => {
+    const result = await getBooks({ pageSize: 2 });
+    expect(result.books).toHaveLength(2);
+    expect(result.totalCount).toBe(3);
+  });
+
+  test("should paginate books with pageIndex and pageSize", async () => {
+    const result = await getBooks({ pageIndex: 1, pageSize: 2 });
+    expect(result.books).toHaveLength(1);
+    expect(result.totalCount).toBe(3);
+  });
+
+  test("should sort books by title ascending", async () => {
+    const result = await getBooks({
+      sorting: [{ id: "title", desc: false }]
+    });
+    expect(result.books).toHaveLength(3);
+    expect(result.books[0].title).toBe("Dune");
+  });
+
+  test("should sort books by year descending", async () => {
+    const result = await getBooks({
+      sorting: [{ id: "year", desc: true }]
+    });
+    expect(result.books).toHaveLength(3);
+    expect(result.books[0].year).toBe(1969);
   });
 
   test("should return total book count", async () => {

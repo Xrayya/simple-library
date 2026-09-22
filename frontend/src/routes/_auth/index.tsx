@@ -503,8 +503,6 @@ function RouteComponent() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
-  console.log(sorting);
-
   // TODO: start simple usequery book
   const { data, isLoading, error } = useQuery(
     bookListOptions({
